@@ -31,9 +31,10 @@ Public Class PIXYData
     Dim manualGoBoolean As Boolean                                                                  'Boolean to know that the Manual Go has been pressed
     Dim widthSingle As Single                                                                       'Width value of the table under test
     Dim heightSingle As Single                                                                      'Height value of the table under test
-    Dim velocitySingle As Single                                                                    'Velocity value of the motors. Set in PIC code
+    Dim velocitySingle As Single = 0.004                                                            'Velocity value of the motors. Set in PIC code
     Dim timerTestBoolean As Boolean                                                                 'Boolean for the serial ports to know if the correct one has been assigned
     Dim timerTestInteger As Integer                                                                 'timer to know the time span that has passed
+    Dim portRenameBoolean As Boolean                                                         'Dimension that will only allow the portRename happen once
 
 
 
@@ -105,8 +106,6 @@ Public Class PIXYData
 
         ExitButton.Top = Me.Height - 70
         ExitButton.Left = Me.Width - 200
-        GoButton.Top = Me.Height - 70
-        GoButton.Left = ExitButton.Left - GoButton.Width - 20
         TabControl1.Width = Me.Width - 50
         TabControl1.Height = Me.Height - 120
         TablePictureBox.Width = TabControl1.Width - 160
@@ -121,18 +120,19 @@ Public Class PIXYData
 
         Timer.Enabled = False                                                                       'Disables timer to interrupt again
 
-        If timerTestBoolean Then                                                                    'If the PIXY communictation port is correct,
-            Try                                                                                     'name the PIC serial port to the unused port 
-                PICSerialPort.PortName = comPort2String                                             'and open the port
-            Catch ex As Exception                                                                   '--/
-                PICSerialPort.PortName = comPort1String                                             '-/
-            End Try                                                                                 '/
+        If portRenameBoolean = False Then
+            If timerTestInteger = 100 Then                                                                    'If the PIXY communictation port is correct,
+                SerialPortRenameSub()                                                                   'Sub that will rename the port being used for the PIXY
 
-            PICSerialPort.BaudRate = 57600                                                          'Baudrate of 57600 bits/sec
-            PICSerialPort.DataBits = 8                                                              '8 data bits
-            PICSerialPort.StopBits = IO.Ports.StopBits.One                                          '1 stop bit
-            PICSerialPort.Parity = IO.Ports.Parity.None                                             'No parity bits
-            PICSerialPort.Open()
+
+
+                '    portRenameBoolean = True
+                'Else
+                '    timerTestInteger += 1                                                                       'Step the timer for every bad receive data
+
+                '    If timerTestInteger = 20 And timerTestBoolean = False Then               'Long enough time has elapsed that indicate incorrect port
+                '    End If
+            End If
         End If
 
 
@@ -179,29 +179,135 @@ Public Class PIXYData
 
     'Sub for read the serial data from the PIC16LF1788 which will send 14 bytes, receive up to 15 bytes of data in case of errors.
     Private Sub PIXYSerialPort_DataReceived(sender As Object, e As SerialDataReceivedEventArgs) Handles PIXYSerialPort.DataReceived
+        Dim byte0Integer As Integer                                                             'Dimension for the LSB sync data, can be 0x55 or 0x56
+        Dim byte1Integer As Integer                                                             'Dimension for the MSB sync data, is 0xaa
+        Dim byte2Integer As Integer                                                             'Dimension for the LSB checksum
+        Dim byte3Integer As Integer                                                             'Dimension for the MSB checksum
+        Dim byte4Integer As Integer                                                             'Dimension for the LSB signature number
+        Dim byte5Integer As Integer                                                             'Dimension for the MSB signature number 
+        Dim byte6Integer As Integer                                                             'Dimension for the LSB x center of object
+        Dim byte7Integer As Integer                                                             'Dimension for the MSB x center of object
+        Dim byte8Integer As Integer                                                             'Dimension for the LSB y center of object
+        Dim byte9Integer As Integer                                                             'Dimension for the MSB y center of object
 
-        Dim testInteger As Integer                                                                  'Dimension for the data being read
+
+        CheckForIllegalCrossThreadCalls = False                                                 'Disables for there to be errors with cross thread
 
         PIXYSerialPort.Read(recieveBytesPixy, 0, 15)                                                'Save serial
 
-        For i = 0 To 10                                                                             'Test the first few bytes of data for 85 header from PIXY
-            testInteger = PIXYSerialPort.ReadByte                                                   'Read the first byte of serial data
 
-            If testInteger = 85 Or testInteger = 86 Then                                            'If the header was found set the timer boolean and pixy data boolean
+        byte0Integer = PIXYSerialPort.ReadByte                                                                                   '/
+        byte1Integer = PIXYSerialPort.ReadByte                                                  'Read The second sync word from the PIXY
 
-                timerTestBoolean = True
-                timerTestInteger = 0
-                pixyDataBoolean = True
+        If byte0Integer = 85 And byte1Integer = 170 Then                                                              'If the second sync word is correct
 
+            portRenameBoolean = True                                                             'Correct port selected
+
+            byte2Integer = PIXYSerialPort.ReadByte                                              'Read the rest of the sync data 
+            byte3Integer = PIXYSerialPort.ReadByte                                              '------/
+
+            If byte2Integer = 85 And byte3Integer = 170 Then                                    'If rest another sync, following data is information
+                byte2Integer = PIXYSerialPort.ReadByte                                          'Read the rest of the data 
+                byte3Integer = PIXYSerialPort.ReadByte                                          '/
             End If
-        Next
+
+            byte4Integer = PIXYSerialPort.ReadByte                                              '-----/
+            byte5Integer = PIXYSerialPort.ReadByte                                              '----/
+            byte6Integer = PIXYSerialPort.ReadByte                                              '---/
+            byte7Integer = PIXYSerialPort.ReadByte                                              '--/
+            byte8Integer = PIXYSerialPort.ReadByte                                              '-/
+            byte9Integer = PIXYSerialPort.ReadByte                                              '/
 
 
-        timerTestInteger += 1                                                                       'Step the timer for every bad receive data
+            Sync0TextBox.Text = (CInt(byte0Integer).ToString)                                   'Writes all the bytes of data for the User to See from the PIXY
+            Sync1TextBox.Text = (CInt(byte1Integer).ToString)                                   '--------/
+            CSum0TextBox.Text = (CInt(byte2Integer).ToString)                                   '-------/
+            CSum1TextBox.Text = (CInt(byte3Integer).ToString)                                   '------/
+            Sig0TextBox.Text = (CInt(byte4Integer).ToString)                                    '-----/
+            Sig1TextBox.Text = (CInt(byte5Integer).ToString)                                    '----/
+            X0TextBox.Text = (CInt(byte6Integer).ToString)                                      '---/
+            X1TextBox.Text = (CInt(byte7Integer).ToString)                                      '--/
+            Y0TextBox.Text = (CInt(byte8Integer).ToString)                                      '-/
+            Y1TextBox.Text = (CInt(byte9Integer).ToString)                                      '/
 
-        If testInteger = 0 And timerTestInteger = 5 And timerTestBoolean = False Then               'Long enough time has elapsed that indicate incorrect port
-            SerialPortRenameSub()                                                                   'Sub that will rename the port being used for the PIXY
+
+            'save the data to know how to move the striker. PIXY data runs at 
+            '50 frames per second. Saving data will help when getting the velocity
+            'and direction of the puck
+            If byte4Integer = 1 Then                                                            'Test if the Puck has been detected. This is the signature of the puck
+                xLocationInteger(frameInteger) = byte6Integer                                   'No data is saved if it is not
+                yLocationInteger(frameInteger) = byte8Integer                                   '---/
+
+                frameInteger += 1                                                               '--/
+
+                If frameInteger = 10 Then                                                       '-/
+                    frameInteger = 1                                                            '/
+                End If
+            End If
+        Else
+            If portRenameBoolean = False Then
+                timerTestInteger += 1
+            End If
         End If
+
+        GraphicStateSub(5)                                                                      'Sub that indicates that the current location of the puck is to be displayed
+        TablePictureBoxSub(xLocationInteger(1), yLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
+                            callibrations, graphicsDisplayBoolean)                               '/
+
+
+        'Dim test1Integer As Integer                                                                  'Dimension for the data being read
+        'Dim test2Integer As Integer
+        'Dim test3Integer As Integer
+        'Dim test4Integer As Integer
+        'Dim test5Integer As Integer
+        'Dim test6Integer As Integer
+        'Dim test7Integer As Integer
+
+        'CheckForIllegalCrossThreadCalls = False                                                     'Disables for there to be errors with cross thread
+
+        'PIXYSerialPort.Read(recieveBytesPixy, 0, 15)                                                'Save serial
+
+        'Test if the data is the PIXY or not, if so allows for the raw PIXY data
+        'If portRenameBoolean = False Then
+
+        '    test1Integer = PIXYSerialPort.ReadByte
+        '    test2Integer = PIXYSerialPort.ReadByte
+        '    test3Integer = PIXYSerialPort.ReadByte
+        '    test4Integer = PIXYSerialPort.ReadByte
+        '    test5Integer = PIXYSerialPort.ReadByte
+        '    test6Integer = PIXYSerialPort.ReadByte
+        '    test7Integer = PIXYSerialPort.ReadByte
+
+        '    If test1Integer = 85 Then
+        '        timerTestBoolean = True
+        '        timerTestInteger = 0
+        '    End If
+        '    If test2Integer = 85 Then
+        '        timerTestBoolean = True
+        '        timerTestInteger = 0
+        '    End If
+        '    If test3Integer = 85 Then
+        '        timerTestBoolean = True
+        '        timerTestInteger = 0
+        '    End If
+        '    If test4Integer = 85 Then
+        '        timerTestBoolean = True
+        '        timerTestInteger = 0
+        '    End If
+        '    If test5Integer = 85 Then
+        '        timerTestBoolean = True
+        '        timerTestInteger = 0
+        '    End If
+        '    If test6Integer = 85 Then
+        '        timerTestBoolean = True
+        '        timerTestInteger = 0
+        '    End If
+        '    If test7Integer = 85 Then
+        '        timerTestBoolean = True
+        '        timerTestInteger = 0
+        '    End If
+        'Else
+        'End If
 
     End Sub
 
@@ -611,19 +717,15 @@ Public Class PIXYData
         PIXYSerialPort.Parity = IO.Ports.Parity.None                                            'No parity bits
         PIXYSerialPort.Open()
 
-        If timerTestBoolean Then                                                                'If the PIXY communictation port is correct,
-            Try                                                                                 'name the PIC serial port to the unused port 
-                PICSerialPort.PortName = comPort2String                                         'and open the port
-            Catch ex As Exception                                                               '--/
-                PICSerialPort.PortName = comPort1String                                         '-/
-            End Try                                                                             '/
 
-            PICSerialPort.BaudRate = 57600                                                      'Baudrate of 57600 bits/sec
-            PICSerialPort.DataBits = 8                                                          '8 data bits
-            PICSerialPort.StopBits = IO.Ports.StopBits.One                                      '1 stop bit
-            PICSerialPort.Parity = IO.Ports.Parity.None                                         'No parity bits
-            PICSerialPort.Open()
-        End If
+
+        PICSerialPort.PortName = comPort1String
+        PICSerialPort.BaudRate = 57600                                                      'Baudrate of 57600 bits/sec
+        PICSerialPort.DataBits = 8                                                          '8 data bits
+        PICSerialPort.StopBits = IO.Ports.StopBits.One                                      '1 stop bit
+        PICSerialPort.Parity = IO.Ports.Parity.None                                         'No parity bits
+        PICSerialPort.Open()
+
 
     End Sub
 
@@ -639,8 +741,10 @@ Public Class PIXYData
             If comPortInteger = 1 Then                                                          'For the first port found
                 comPort1String = sp                                                             'Set the port found to the global first port
                 comPortInteger += 1                                                             'Goes to next serial port
+                portRenameBoolean = True                                                        'Indicates one port
             Else                                                                                'If second found, set the port to the second global
                 comPort2String = sp                                                             '/
+                portRenameBoolean = False                                                       'Indicates more than one port
             End If
             ListBox1.Items.Add(sp)                                                              'displays the communication ports
         Next
@@ -676,10 +780,13 @@ Public Class PIXYData
 
         CheckForIllegalCrossThreadCalls = False                                                 'Disables for there to be errors with cross thread
 
+        PIXYSerialPort.Read(recieveBytesPixy, 0, 15)                                                'Save serial
+
+
+        byte0Integer = PIXYSerialPort.ReadByte                                                                                   '/
         byte1Integer = PIXYSerialPort.ReadByte                                                  'Read The second sync word from the PIXY
 
-        If byte1Integer = 170 Then                                                              'If the second sync word is correct
-
+        If byte0Integer = 85 And byte1Integer = 170 Then                                                              'If the second sync word is correct
 
             byte2Integer = PIXYSerialPort.ReadByte                                              'Read the rest of the sync data 
             byte3Integer = PIXYSerialPort.ReadByte                                              '------/
@@ -725,9 +832,9 @@ Public Class PIXYData
 
         End If
 
-        GraphicStateSub(5)                                                                      'Sub that indicates that the current location of the puck is to be displayed
-        TablePictureBoxSub(xLocationInteger(1), yLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
-                           callibrations, graphicsDisplayBoolean)                               '/
+        'GraphicStateSub(5)                                                                      'Sub that indicates that the current location of the puck is to be displayed
+        'TablePictureBoxSub(xLocationInteger(1), yLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
+        'callibrations, graphicsDisplayBoolean)                               '/
 
     End Sub
 
