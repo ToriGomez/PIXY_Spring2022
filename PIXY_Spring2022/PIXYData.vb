@@ -28,6 +28,7 @@ Public Class PIXYData
     Dim yInchConversionSingle(5) As Single                                                          'Holds all the y step conversions
     Dim graphicsDisplayBoolean(5) As Boolean                                                        'Boolean to know what graphic of puck (location) will be seen
     Dim manualGoBoolean As Boolean                                                                  'Boolean to know that the Manual Go has been pressed
+    Dim manualReadyBoolean As Boolean                                                               'Boolean to know that the Manual Ready is checked
     Dim widthSingle As Single                                                                       'Width value of the table under test
     Dim heightSingle As Single                                                                      'Height value of the table under test
     Dim velocitySingle As Single = 0.004                                                            'Velocity value of the motors. Set in PIC code
@@ -117,8 +118,9 @@ Public Class PIXYData
         Timer.Enabled = False                                                                       'Disables timer to interrupt again
 
         If portRenameBoolean = False Then
-            If timerTestInteger = 100 Then                                                          'If the PIXY communictation port is correct,
+            If timerTestInteger >= 100 Then                                                         'If the PIXY communictation port is correct,
                 SerialPortRenameSub()                                                               'Sub that will rename the port being used for the PIXY
+                timerTestInteger = 0                                                                'Reset the timer 
             End If
         Else
             Try                                                                                     'Opens the PIC port if the PIXY is Initially correct
@@ -680,6 +682,10 @@ Public Class PIXYData
             ListBox1.Items.Add(sp)                                                                  'displays the communication ports
         Next
 
+        If comPort2String = "" Then
+            MsgBox("ERROR OF COMMUNICATIONS CONNECTIONS!!!" + vbNewLine +
+                   "CHECK CONNECTIONS AND RESTART PROGRAM.")
+        End If
     End Sub
 
 
@@ -729,6 +735,10 @@ Public Class PIXYData
             Goal1InTextBox.Text = CStr(goal1Integer)                                                '--/
             Goal2InTextBox.Text = CStr(goal2Integer)                                                '-/
             StrikerReadyTextBox.Text = CStr(motorsHomeInteger)                                      '/
+        End If
+
+        If ReadyCheckBox.Checked Then                                                               'To manually still be able to move the motors if PIC is not sending ready
+            strikerReadyBoolean = True                                                              '/
         End If
 
     End Sub
@@ -1147,7 +1157,7 @@ Public Class PIXYData
 
     'Sub routine to display a Message box of the functionality of the program.
     Private Sub AboutToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AboutToolStripMenuItem.Click
-        MsgBox("Welcome to Automated AIRHOCKEY." + vbNewLine + vbNewLine +
+        MsgBox("Welcome to Automated Air Hokey." + vbNewLine + vbNewLine +
                 "Communications with the PIXY Camera and Main Board PIC, allows for the program to receive data and to calcuate how to move motors." +
                 " This also displays the score and the location of the puck on the board." + vbNewLine + vbNewLine +
                 "Click one of the callibration checkboxes to manually set the center callibration or do all defaults." +
@@ -1162,5 +1172,6 @@ Public Class PIXYData
                 "If the data received from PIC is ready, the MANUAL READY does not need to be pressed." + vbNewLine + vbNewLine +
                 "Click EXIT to leave program.")
     End Sub
+
 End Class
 

@@ -56,6 +56,7 @@ Partial Class PIXYData
         Me.XDistLabel = New System.Windows.Forms.Label()
         Me.XDistTextBox = New System.Windows.Forms.TextBox()
         Me.SendsGroupBox = New System.Windows.Forms.GroupBox()
+        Me.GoButton = New System.Windows.Forms.Button()
         Me.ManualLocButton = New System.Windows.Forms.Button()
         Me.ReadyCheckBox = New System.Windows.Forms.CheckBox()
         Me.CautionLabel = New System.Windows.Forms.Label()
@@ -122,7 +123,6 @@ Partial Class PIXYData
         Me.ExitToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.HELPToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.AboutToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.GoButton = New System.Windows.Forms.Button()
         Me.TabControl1.SuspendLayout()
         Me.TabPageDisplay.SuspendLayout()
         Me.ScoresGroupBox.SuspendLayout()
@@ -470,6 +470,16 @@ Partial Class PIXYData
         Me.SendsGroupBox.TabIndex = 37
         Me.SendsGroupBox.TabStop = False
         Me.SendsGroupBox.Text = "VB PIC SENDS:"
+        '
+        'GoButton
+        '
+        Me.GoButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
+        Me.GoButton.Location = New System.Drawing.Point(361, 478)
+        Me.GoButton.Name = "GoButton"
+        Me.GoButton.Size = New System.Drawing.Size(248, 90)
+        Me.GoButton.TabIndex = 5
+        Me.GoButton.Text = "MANUAL &GO"
+        Me.GoButton.UseVisualStyleBackColor = True
         '
         'ManualLocButton
         '
@@ -988,7 +998,7 @@ Partial Class PIXYData
         Me.MenuStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.FILEToolStripMenuItem, Me.HELPToolStripMenuItem})
         Me.MenuStrip.Location = New System.Drawing.Point(0, 0)
         Me.MenuStrip.Name = "MenuStrip"
-        Me.MenuStrip.Size = New System.Drawing.Size(2000, 52)
+        Me.MenuStrip.Size = New System.Drawing.Size(2000, 60)
         Me.MenuStrip.TabIndex = 4
         Me.MenuStrip.Text = "MenuStrip1"
         '
@@ -996,7 +1006,7 @@ Partial Class PIXYData
         '
         Me.FILEToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.TroubleshootToolStripMenuItem, Me.ExitToolStripMenuItem})
         Me.FILEToolStripMenuItem.Name = "FILEToolStripMenuItem"
-        Me.FILEToolStripMenuItem.Size = New System.Drawing.Size(94, 48)
+        Me.FILEToolStripMenuItem.Size = New System.Drawing.Size(94, 50)
         Me.FILEToolStripMenuItem.Text = "FILE"
         '
         'TroubleshootToolStripMenuItem
@@ -1046,24 +1056,14 @@ Partial Class PIXYData
         '
         Me.HELPToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.AboutToolStripMenuItem})
         Me.HELPToolStripMenuItem.Name = "HELPToolStripMenuItem"
-        Me.HELPToolStripMenuItem.Size = New System.Drawing.Size(109, 48)
+        Me.HELPToolStripMenuItem.Size = New System.Drawing.Size(109, 50)
         Me.HELPToolStripMenuItem.Text = "HELP"
         '
         'AboutToolStripMenuItem
         '
         Me.AboutToolStripMenuItem.Name = "AboutToolStripMenuItem"
-        Me.AboutToolStripMenuItem.Size = New System.Drawing.Size(448, 54)
+        Me.AboutToolStripMenuItem.Size = New System.Drawing.Size(266, 54)
         Me.AboutToolStripMenuItem.Text = "&About"
-        '
-        'GoButton
-        '
-        Me.GoButton.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.GoButton.Location = New System.Drawing.Point(361, 478)
-        Me.GoButton.Name = "GoButton"
-        Me.GoButton.Size = New System.Drawing.Size(248, 90)
-        Me.GoButton.TabIndex = 5
-        Me.GoButton.Text = "MANUAL &GO"
-        Me.GoButton.UseVisualStyleBackColor = True
         '
         'PIXYData
         '
