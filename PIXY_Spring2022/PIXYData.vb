@@ -21,7 +21,6 @@ Public Class PIXYData
     Dim xLocationInteger(10) As Integer                                                             'Save 11 Frames of data arrays for x & y
     Dim yLocationInteger(10) As Integer                                                             '/
     Dim frameInteger As Integer                                                                     'Dimension of the number of saved frame data
-    Dim pixyDataBoolean As Boolean = False                                                          'Dimension to wait to read data until received
     Dim picDataBoolean As Boolean = False                                                           '/
     Dim strikerReadyBoolean As Boolean = False                                                      'Dimension to wait until the striker/motors are in home postion
     Dim callibrations(10) As Integer                                                                'Holds all the save coordinates from callibration
@@ -32,9 +31,8 @@ Public Class PIXYData
     Dim widthSingle As Single                                                                       'Width value of the table under test
     Dim heightSingle As Single                                                                      'Height value of the table under test
     Dim velocitySingle As Single = 0.004                                                            'Velocity value of the motors. Set in PIC code
-    Dim timerTestBoolean As Boolean                                                                 'Boolean for the serial ports to know if the correct one has been assigned
     Dim timerTestInteger As Integer                                                                 'timer to know the time span that has passed
-    Dim portRenameBoolean As Boolean                                                         'Dimension that will only allow the portRename happen once
+    Dim portRenameBoolean As Boolean                                                                'Dimension that will only allow the portRename happen once
 
 
 
@@ -43,8 +41,6 @@ Public Class PIXYData
     Private Sub PIXYData_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
         GetSerialPortNamesSub()                                                                     'Sub to get all the ports being used
-
-        timerTestBoolean = False                                                                    'Initial boolean false until the serial port is correct
 
         PIXYSerialPort.PortName = comPort1String                                                    'Test if the port is the PIXY
         PIXYSerialPort.BaudRate = 100000                                                            'Baudrate of 100000 bits/sec. Up to 230k supported.
@@ -121,26 +117,23 @@ Public Class PIXYData
         Timer.Enabled = False                                                                       'Disables timer to interrupt again
 
         If portRenameBoolean = False Then
-            If timerTestInteger = 100 Then                                                                    'If the PIXY communictation port is correct,
-                SerialPortRenameSub()                                                                   'Sub that will rename the port being used for the PIXY
-
-
-
-                '    portRenameBoolean = True
-                'Else
-                '    timerTestInteger += 1                                                                       'Step the timer for every bad receive data
-
-                '    If timerTestInteger = 20 And timerTestBoolean = False Then               'Long enough time has elapsed that indicate incorrect port
-                '    End If
+            If timerTestInteger = 100 Then                                                          'If the PIXY communictation port is correct,
+                SerialPortRenameSub()                                                               'Sub that will rename the port being used for the PIXY
             End If
+        Else
+            Try                                                                                     'Opens the PIC port if the PIXY is Initially correct
+                PICSerialPort.PortName = comPort2String                                             'Doesn't reopen if it already has been opened
+                PICSerialPort.BaudRate = 57600                                                      'Baudrate of 57600 bits/sec
+                PICSerialPort.DataBits = 8                                                          '8 data bits
+                PICSerialPort.StopBits = IO.Ports.StopBits.One                                      '1 stop bit
+                PICSerialPort.Parity = IO.Ports.Parity.None                                         'No parity bits
+                PICSerialPort.Open()
+            Catch ex As Exception
+            End Try
         End If
 
 
         AirHockeyGraphicsSub()                                                                      'Sub to Draw the background of picture box of the goal
-
-        If pixyDataBoolean Then                                                                     'Wait until the PIXY data has been read
-            PixyRawSerialSub()                                                                      'Get the data from the PIXY
-        End If
 
         SignatureLocationSub()                                                                      'Displays the current puck Location seen.
 
@@ -151,9 +144,6 @@ Public Class PIXYData
         If strikerReadyBoolean Then                                                                 'If the Motor is at home, get data to send out to the PIC
             'IntersectionPointSub()                                                                 'NOT FINISHED Calculate the point of intersection of the moving puck
             PuckPointSub()                                                                          'Gets the current location of the puck to be hit(NOT INTERSECTION POINT)
-            GraphicStateSub(5)                                                                      'Sub that allows for the current location of the puck to be displayed
-            TablePictureBoxSub(xLocationInteger(1), xLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
-                               callibrations, graphicsDisplayBoolean)                               '/
             strikerReadyBoolean = False                                                             'Disable sends to PIC until homed again
         End If
 
@@ -179,135 +169,76 @@ Public Class PIXYData
 
     'Sub for read the serial data from the PIC16LF1788 which will send 14 bytes, receive up to 15 bytes of data in case of errors.
     Private Sub PIXYSerialPort_DataReceived(sender As Object, e As SerialDataReceivedEventArgs) Handles PIXYSerialPort.DataReceived
-        Dim byte0Integer As Integer                                                             'Dimension for the LSB sync data, can be 0x55 or 0x56
-        Dim byte1Integer As Integer                                                             'Dimension for the MSB sync data, is 0xaa
-        Dim byte2Integer As Integer                                                             'Dimension for the LSB checksum
-        Dim byte3Integer As Integer                                                             'Dimension for the MSB checksum
-        Dim byte4Integer As Integer                                                             'Dimension for the LSB signature number
-        Dim byte5Integer As Integer                                                             'Dimension for the MSB signature number 
-        Dim byte6Integer As Integer                                                             'Dimension for the LSB x center of object
-        Dim byte7Integer As Integer                                                             'Dimension for the MSB x center of object
-        Dim byte8Integer As Integer                                                             'Dimension for the LSB y center of object
-        Dim byte9Integer As Integer                                                             'Dimension for the MSB y center of object
+        Dim byte0Integer As Integer                                                                 'Dimension for the LSB sync data, can be 0x55 or 0x56
+        Dim byte1Integer As Integer                                                                 'Dimension for the MSB sync data, is 0xaa
+        Dim byte2Integer As Integer                                                                 'Dimension for the LSB checksum
+        Dim byte3Integer As Integer                                                                 'Dimension for the MSB checksum
+        Dim byte4Integer As Integer                                                                 'Dimension for the LSB signature number
+        Dim byte5Integer As Integer                                                                 'Dimension for the MSB signature number 
+        Dim byte6Integer As Integer                                                                 'Dimension for the LSB x center of object
+        Dim byte7Integer As Integer                                                                 'Dimension for the MSB x center of object
+        Dim byte8Integer As Integer                                                                 'Dimension for the LSB y center of object
+        Dim byte9Integer As Integer                                                                 'Dimension for the MSB y center of object
 
 
-        CheckForIllegalCrossThreadCalls = False                                                 'Disables for there to be errors with cross thread
+        CheckForIllegalCrossThreadCalls = False                                                     'Disables for there to be errors with cross thread
 
         PIXYSerialPort.Read(recieveBytesPixy, 0, 15)                                                'Save serial
 
 
-        byte0Integer = PIXYSerialPort.ReadByte                                                                                   '/
-        byte1Integer = PIXYSerialPort.ReadByte                                                  'Read The second sync word from the PIXY
+        byte0Integer = PIXYSerialPort.ReadByte                                                      'Read the first sync word from the PIXY
+        byte1Integer = PIXYSerialPort.ReadByte                                                      'Read The second sync word from the PIXY
 
-        If byte0Integer = 85 And byte1Integer = 170 Then                                                              'If the second sync word is correct
+        If byte0Integer = 85 And byte1Integer = 170 Then                                            'If the second sync word is correct
 
-            portRenameBoolean = True                                                             'Correct port selected
+            portRenameBoolean = True                                                                'Correct port selected
 
-            byte2Integer = PIXYSerialPort.ReadByte                                              'Read the rest of the sync data 
-            byte3Integer = PIXYSerialPort.ReadByte                                              '------/
+            byte2Integer = PIXYSerialPort.ReadByte                                                  'Read the rest of the sync data 
+            byte3Integer = PIXYSerialPort.ReadByte                                                  '------/
 
-            If byte2Integer = 85 And byte3Integer = 170 Then                                    'If rest another sync, following data is information
-                byte2Integer = PIXYSerialPort.ReadByte                                          'Read the rest of the data 
-                byte3Integer = PIXYSerialPort.ReadByte                                          '/
+            If byte2Integer = 85 And byte3Integer = 170 Then                                        'If rest another sync, following data is information
+                byte2Integer = PIXYSerialPort.ReadByte                                              'Read the rest of the data 
+                byte3Integer = PIXYSerialPort.ReadByte                                              '/
             End If
 
-            byte4Integer = PIXYSerialPort.ReadByte                                              '-----/
-            byte5Integer = PIXYSerialPort.ReadByte                                              '----/
-            byte6Integer = PIXYSerialPort.ReadByte                                              '---/
-            byte7Integer = PIXYSerialPort.ReadByte                                              '--/
-            byte8Integer = PIXYSerialPort.ReadByte                                              '-/
-            byte9Integer = PIXYSerialPort.ReadByte                                              '/
+            byte4Integer = PIXYSerialPort.ReadByte                                                  '-----/
+            byte5Integer = PIXYSerialPort.ReadByte                                                  '----/
+            byte6Integer = PIXYSerialPort.ReadByte                                                  '---/
+            byte7Integer = PIXYSerialPort.ReadByte                                                  '--/
+            byte8Integer = PIXYSerialPort.ReadByte                                                  '-/
+            byte9Integer = PIXYSerialPort.ReadByte                                                  '/
 
 
-            Sync0TextBox.Text = (CInt(byte0Integer).ToString)                                   'Writes all the bytes of data for the User to See from the PIXY
-            Sync1TextBox.Text = (CInt(byte1Integer).ToString)                                   '--------/
-            CSum0TextBox.Text = (CInt(byte2Integer).ToString)                                   '-------/
-            CSum1TextBox.Text = (CInt(byte3Integer).ToString)                                   '------/
-            Sig0TextBox.Text = (CInt(byte4Integer).ToString)                                    '-----/
-            Sig1TextBox.Text = (CInt(byte5Integer).ToString)                                    '----/
-            X0TextBox.Text = (CInt(byte6Integer).ToString)                                      '---/
-            X1TextBox.Text = (CInt(byte7Integer).ToString)                                      '--/
-            Y0TextBox.Text = (CInt(byte8Integer).ToString)                                      '-/
-            Y1TextBox.Text = (CInt(byte9Integer).ToString)                                      '/
+            Sync0TextBox.Text = (CInt(byte0Integer).ToString)                                       'Writes all the bytes of data for the User to See from the PIXY
+            Sync1TextBox.Text = (CInt(byte1Integer).ToString)                                       '--------/
+            CSum0TextBox.Text = (CInt(byte2Integer).ToString)                                       '-------/
+            CSum1TextBox.Text = (CInt(byte3Integer).ToString)                                       '------/
+            Sig0TextBox.Text = (CInt(byte4Integer).ToString)                                        '-----/
+            Sig1TextBox.Text = (CInt(byte5Integer).ToString)                                        '----/
+            X0TextBox.Text = (CInt(byte6Integer).ToString)                                          '---/
+            X1TextBox.Text = (CInt(byte7Integer).ToString)                                          '--/
+            Y0TextBox.Text = (CInt(byte8Integer).ToString)                                          '-/
+            Y1TextBox.Text = (CInt(byte9Integer).ToString)                                          '/
 
 
             'save the data to know how to move the striker. PIXY data runs at 
             '50 frames per second. Saving data will help when getting the velocity
             'and direction of the puck
-            If byte4Integer = 1 Then                                                            'Test if the Puck has been detected. This is the signature of the puck
-                xLocationInteger(frameInteger) = byte6Integer                                   'No data is saved if it is not
-                yLocationInteger(frameInteger) = byte8Integer                                   '---/
+            If byte4Integer = 1 Then                                                                'Test if the Puck has been detected. This is the signature of the puck
+                xLocationInteger(frameInteger) = byte6Integer                                       'No data is saved if it is not
+                yLocationInteger(frameInteger) = byte8Integer                                       '---/
 
-                frameInteger += 1                                                               '--/
+                frameInteger += 1                                                                   '--/
 
-                If frameInteger = 10 Then                                                       '-/
-                    frameInteger = 1                                                            '/
+                If frameInteger = 10 Then                                                           '-/
+                    frameInteger = 1                                                                '/
                 End If
             End If
-        Else
-            If portRenameBoolean = False Then
-                timerTestInteger += 1
+        Else                                                                                        'If the 85 and 170 sync is not received, add to timer to test 
+            If portRenameBoolean = False Then                                                       'if this is the correct port for the PIXY
+                timerTestInteger += 1                                                               '/
             End If
         End If
-
-        GraphicStateSub(5)                                                                      'Sub that indicates that the current location of the puck is to be displayed
-        TablePictureBoxSub(xLocationInteger(1), yLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
-                            callibrations, graphicsDisplayBoolean)                               '/
-
-
-        'Dim test1Integer As Integer                                                                  'Dimension for the data being read
-        'Dim test2Integer As Integer
-        'Dim test3Integer As Integer
-        'Dim test4Integer As Integer
-        'Dim test5Integer As Integer
-        'Dim test6Integer As Integer
-        'Dim test7Integer As Integer
-
-        'CheckForIllegalCrossThreadCalls = False                                                     'Disables for there to be errors with cross thread
-
-        'PIXYSerialPort.Read(recieveBytesPixy, 0, 15)                                                'Save serial
-
-        'Test if the data is the PIXY or not, if so allows for the raw PIXY data
-        'If portRenameBoolean = False Then
-
-        '    test1Integer = PIXYSerialPort.ReadByte
-        '    test2Integer = PIXYSerialPort.ReadByte
-        '    test3Integer = PIXYSerialPort.ReadByte
-        '    test4Integer = PIXYSerialPort.ReadByte
-        '    test5Integer = PIXYSerialPort.ReadByte
-        '    test6Integer = PIXYSerialPort.ReadByte
-        '    test7Integer = PIXYSerialPort.ReadByte
-
-        '    If test1Integer = 85 Then
-        '        timerTestBoolean = True
-        '        timerTestInteger = 0
-        '    End If
-        '    If test2Integer = 85 Then
-        '        timerTestBoolean = True
-        '        timerTestInteger = 0
-        '    End If
-        '    If test3Integer = 85 Then
-        '        timerTestBoolean = True
-        '        timerTestInteger = 0
-        '    End If
-        '    If test4Integer = 85 Then
-        '        timerTestBoolean = True
-        '        timerTestInteger = 0
-        '    End If
-        '    If test5Integer = 85 Then
-        '        timerTestBoolean = True
-        '        timerTestInteger = 0
-        '    End If
-        '    If test6Integer = 85 Then
-        '        timerTestBoolean = True
-        '        timerTestInteger = 0
-        '    End If
-        '    If test7Integer = 85 Then
-        '        timerTestBoolean = True
-        '        timerTestInteger = 0
-        '    End If
-        'Else
-        'End If
 
     End Sub
 
@@ -662,15 +593,15 @@ Public Class PIXYData
     'with the PIC and VB is working properly. This bypasses the current sends for the current location of the puck.
     Private Sub ManualLocButton_Click(sender As Object, e As EventArgs) Handles ManualLocButton.Click, ManualLocationToolStripMenuItem.Click
 
-        Dim sendByte(4) As Byte                                                                 'Dimension for the array of data being sent to the PIC
+        Dim sendByte(4) As Byte                                                                     'Dimension for the array of data being sent to the PIC
 
-        sendByte(0) = CByte(94)                                                                 'Send Handshake ^ Hex:5E Dec:94
-        sendByte(1) = CByte(0)                                                                  'MSB byte of x step
-        sendByte(2) = CByte(0)                                                                  'LSB byte of x step
-        sendByte(3) = CByte(7)                                                                  'MSB byte of y step
-        sendByte(4) = CByte(29)                                                                 'LSB byte of y step
+        sendByte(0) = CByte(94)                                                                     'Send Handshake ^ Hex:5E Dec:94
+        sendByte(1) = CByte(0)                                                                      'MSB byte of x step
+        sendByte(2) = CByte(0)                                                                      'LSB byte of x step
+        sendByte(3) = CByte(7)                                                                      'MSB byte of y step
+        sendByte(4) = CByte(29)                                                                     'LSB byte of y step
 
-        PICSerialPort.Write(sendByte, 0, 5)                                                     'if the MANUAL GO button has been pressed
+        PICSerialPort.Write(sendByte, 0, 5)                                                         'if the MANUAL GO button has been pressed
 
     End Sub
 
@@ -690,16 +621,16 @@ Public Class PIXYData
     'Sub of the Exit button that closes out the program.
     Private Sub ExitButton_Click(sender As Object, e As EventArgs) Handles ExitButton.Click, ExitToolStripMenuItem.Click
 
-        Dim stateSingle As Single                                                               'Dimension StateSingle is a vbYes or vbNo.
+        Dim stateSingle As Single                                                                   'Dimension StateSingle is a vbYes or vbNo.
 
-        stateSingle = MsgBox("Would you like to exit?", CType(vbYesNo + vbCritical +            'Message box with message and a Yes and No buttons. Writes Select to stateSingle.
-                             vbDefaultButton2, MsgBoxStyle), "Exit")                            '/
+        stateSingle = MsgBox("Would you like to exit?", CType(vbYesNo + vbCritical +                'Message box with message and a Yes and No buttons. Writes Select to stateSingle.
+                             vbDefaultButton2, MsgBoxStyle), "Exit")                                '/
 
-        If stateSingle = vbYes Then                                                             'If/Then Function tests if Yes was selected, stating that the user wants to exit.
-            PICSerialPort.Close()                                                               'If selected Yes, Closes Program.
-            PIXYSerialPort.Close()                                                              '-/
-            Me.Close()                                                                          '/
-        ElseIf stateSingle = vbNo Then                                                          'If selected No, then clear and return to program.
+        If stateSingle = vbYes Then                                                                 'If/Then Function tests if Yes was selected, stating that the user wants to exit.
+            PICSerialPort.Close()                                                                   'If selected Yes, Closes Program.
+            PIXYSerialPort.Close()                                                                  '-/
+            Me.Close()                                                                              '/
+        ElseIf stateSingle = vbNo Then                                                              'If selected No, then clear and return to program.
         End If
     End Sub
 
@@ -708,22 +639,22 @@ Public Class PIXYData
     'Sub to redesignate the serial ports to the correct portname
     Sub SerialPortRenameSub()
 
-        PIXYSerialPort.Close()                                                                  'Close the incorrect port
+        PIXYSerialPort.Close()                                                                      'Close the incorrect port
 
-        PIXYSerialPort.PortName = comPort2String                                                'Re-name the PIXY to the new port
-        PIXYSerialPort.BaudRate = 100000                                                        'Baudrate of 100000 bits/sec. Up to 230k supported.
-        PIXYSerialPort.DataBits = 8                                                             '8 data bits
-        PIXYSerialPort.StopBits = IO.Ports.StopBits.One                                         '1 stop bit
-        PIXYSerialPort.Parity = IO.Ports.Parity.None                                            'No parity bits
+        PIXYSerialPort.PortName = comPort2String                                                    'Re-name the PIXY to the new port
+        PIXYSerialPort.BaudRate = 100000                                                            'Baudrate of 100000 bits/sec. Up to 230k supported.
+        PIXYSerialPort.DataBits = 8                                                                 '8 data bits
+        PIXYSerialPort.StopBits = IO.Ports.StopBits.One                                             '1 stop bit
+        PIXYSerialPort.Parity = IO.Ports.Parity.None                                                'No parity bits
         PIXYSerialPort.Open()
 
 
 
-        PICSerialPort.PortName = comPort1String
-        PICSerialPort.BaudRate = 57600                                                      'Baudrate of 57600 bits/sec
-        PICSerialPort.DataBits = 8                                                          '8 data bits
-        PICSerialPort.StopBits = IO.Ports.StopBits.One                                      '1 stop bit
-        PICSerialPort.Parity = IO.Ports.Parity.None                                         'No parity bits
+        PICSerialPort.PortName = comPort1String                                                     'Open the PIC serial port 
+        PICSerialPort.BaudRate = 57600                                                              'Baudrate of 57600 bits/sec
+        PICSerialPort.DataBits = 8                                                                  '8 data bits
+        PICSerialPort.StopBits = IO.Ports.StopBits.One                                              '1 stop bit
+        PICSerialPort.Parity = IO.Ports.Parity.None                                                 'No parity bits
         PICSerialPort.Open()
 
 
@@ -734,19 +665,19 @@ Public Class PIXYData
     'Show all available/in-use COMM ports.
     Sub GetSerialPortNamesSub()
 
-        Dim comPortInteger As Integer = 1                                                       'Serial port number under test
+        Dim comPortInteger As Integer = 1                                                           'Serial port number under test
 
-        For Each sp As String In My.Computer.Ports.SerialPortNames                              'Gets every Serial Port (sp) connected
+        For Each sp As String In My.Computer.Ports.SerialPortNames                                  'Gets every Serial Port (sp) connected
 
-            If comPortInteger = 1 Then                                                          'For the first port found
-                comPort1String = sp                                                             'Set the port found to the global first port
-                comPortInteger += 1                                                             'Goes to next serial port
-                portRenameBoolean = True                                                        'Indicates one port
-            Else                                                                                'If second found, set the port to the second global
-                comPort2String = sp                                                             '/
-                portRenameBoolean = False                                                       'Indicates more than one port
+            If comPortInteger = 1 Then                                                              'For the first port found
+                comPort1String = sp                                                                 'Set the port found to the global first port
+                comPortInteger += 1                                                                 'Goes to next serial port
+                portRenameBoolean = True                                                            'Indicates one port
+            Else                                                                                    'If second found, set the port to the second global
+                comPort2String = sp                                                                 '/
+                portRenameBoolean = False                                                           'Indicates more than one port
             End If
-            ListBox1.Items.Add(sp)                                                              'displays the communication ports
+            ListBox1.Items.Add(sp)                                                                  'displays the communication ports
         Next
 
     End Sub
@@ -756,85 +687,14 @@ Public Class PIXYData
     'Sub to read the current location of the Puck being seen by the PIXY
     Sub SignatureLocationSub()
 
-        PuckXTextBox.Text = X0TextBox.Text                                                      'displays the current x location of the puck
-        PuckYTextBox.Text = Y0TextBox.Text                                                      '/
+        PuckXTextBox.Text = X0TextBox.Text                                                          'displays the current x location of the puck
+        PuckYTextBox.Text = Y0TextBox.Text                                                          '/
 
-    End Sub
-
-
-
-    'Sub to read all the Data coming from the PIXY to be displayed. The main needed bytes are the x and y coordinates.
-    Sub PixyRawSerialSub()
-
-        Dim byte0Integer As Integer                                                             'Dimension for the LSB sync data, can be 0x55 or 0x56
-        Dim byte1Integer As Integer                                                             'Dimension for the MSB sync data, is 0xaa
-        Dim byte2Integer As Integer                                                             'Dimension for the LSB checksum
-        Dim byte3Integer As Integer                                                             'Dimension for the MSB checksum
-        Dim byte4Integer As Integer                                                             'Dimension for the LSB signature number
-        Dim byte5Integer As Integer                                                             'Dimension for the MSB signature number 
-        Dim byte6Integer As Integer                                                             'Dimension for the LSB x center of object
-        Dim byte7Integer As Integer                                                             'Dimension for the MSB x center of object
-        Dim byte8Integer As Integer                                                             'Dimension for the LSB y center of object
-        Dim byte9Integer As Integer                                                             'Dimension for the MSB y center of object
-
-
-        CheckForIllegalCrossThreadCalls = False                                                 'Disables for there to be errors with cross thread
-
-        PIXYSerialPort.Read(recieveBytesPixy, 0, 15)                                                'Save serial
-
-
-        byte0Integer = PIXYSerialPort.ReadByte                                                                                   '/
-        byte1Integer = PIXYSerialPort.ReadByte                                                  'Read The second sync word from the PIXY
-
-        If byte0Integer = 85 And byte1Integer = 170 Then                                                              'If the second sync word is correct
-
-            byte2Integer = PIXYSerialPort.ReadByte                                              'Read the rest of the sync data 
-            byte3Integer = PIXYSerialPort.ReadByte                                              '------/
-
-            If byte2Integer = 85 And byte3Integer = 170 Then                                    'If rest another sync, following data is information
-                byte2Integer = PIXYSerialPort.ReadByte                                          'Read the rest of the data 
-                byte3Integer = PIXYSerialPort.ReadByte                                          '/
-            End If
-
-            byte4Integer = PIXYSerialPort.ReadByte                                              '-----/
-            byte5Integer = PIXYSerialPort.ReadByte                                              '----/
-            byte6Integer = PIXYSerialPort.ReadByte                                              '---/
-            byte7Integer = PIXYSerialPort.ReadByte                                              '--/
-            byte8Integer = PIXYSerialPort.ReadByte                                              '-/
-            byte9Integer = PIXYSerialPort.ReadByte                                              '/
-
-
-            Sync0TextBox.Text = (CInt(byte0Integer).ToString)                                   'Writes all the bytes of data for the User to See from the PIXY
-            Sync1TextBox.Text = (CInt(byte1Integer).ToString)                                   '--------/
-            CSum0TextBox.Text = (CInt(byte2Integer).ToString)                                   '-------/
-            CSum1TextBox.Text = (CInt(byte3Integer).ToString)                                   '------/
-            Sig0TextBox.Text = (CInt(byte4Integer).ToString)                                    '-----/
-            Sig1TextBox.Text = (CInt(byte5Integer).ToString)                                    '----/
-            X0TextBox.Text = (CInt(byte6Integer).ToString)                                      '---/
-            X1TextBox.Text = (CInt(byte7Integer).ToString)                                      '--/
-            Y0TextBox.Text = (CInt(byte8Integer).ToString)                                      '-/
-            Y1TextBox.Text = (CInt(byte9Integer).ToString)                                      '/
-
-
-            'save the data to know how to move the striker. PIXY data runs at 
-            '50 frames per second. Saving data will help when getting the velocity
-            'and direction of the puck
-            If byte4Integer = 1 Then                                                            'Test if the Puck has been detected. This is the signature of the puck
-                xLocationInteger(frameInteger) = byte6Integer                                   'No data is saved if it is not
-                yLocationInteger(frameInteger) = byte8Integer                                   '---/
-
-                frameInteger += 1                                                               '--/
-
-                If frameInteger = 10 Then                                                       '-/
-                    frameInteger = 1                                                            '/
-                End If
-            End If
-
+        If IsNumeric(X0TextBox.Text) And IsNumeric(Y0TextBox.Text) Then
+            GraphicStateSub(5)                                                                      'Sub that indicates that the current location of the puck is to be displayed
+            TablePictureBoxSub(xLocationInteger(1), yLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
+                                callibrations, graphicsDisplayBoolean)                              '/
         End If
-
-        'GraphicStateSub(5)                                                                      'Sub that indicates that the current location of the puck is to be displayed
-        'TablePictureBoxSub(xLocationInteger(1), yLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
-        'callibrations, graphicsDisplayBoolean)                               '/
 
     End Sub
 
@@ -843,34 +703,33 @@ Public Class PIXYData
     'Sub of the Raw PIC serial Data
     Sub PicRawSerialSub()
 
-        Dim receivedHeaderInteger As Integer                                                    'Header to verify the serial port is the PIC
-        Dim goal1Integer As Integer                                                             'Value of how many goals have gone into Player side
-        Dim goal2Integer As Integer                                                             'Value of how many goals have gone into Robot side
-        Dim motorsHomeInteger As Integer                                                        'Flag that the striker is at home position
+        Dim receivedHeaderInteger As Integer                                                        'Header to verify the serial port is the PIC
+        Dim goal1Integer As Integer                                                                 'Value of how many goals have gone into Player side
+        Dim goal2Integer As Integer                                                                 'Value of how many goals have gone into Robot side
+        Dim motorsHomeInteger As Integer                                                            'Flag that the striker is at home position
 
-        receivedHeaderInteger = PICSerialPort.ReadByte                                          'Sets the receivedHeader to the values of the first byte sent from the PIC
+        receivedHeaderInteger = PICSerialPort.ReadByte                                              'Sets the receivedHeader to the values of the first byte sent from the PIC
 
-        Do Until receivedHeaderInteger = 36                                                     'Wait until the header is received to know following data is information
-            receivedHeaderInteger = PICSerialPort.ReadByte                                      '-/
-        Loop                                                                                    '/
+        If receivedHeaderInteger = 36 Then                                                          'Tests if the Header was the $ sign
 
-        goal1Integer = PICSerialPort.ReadByte                                                   'Read the goal 1 data from PIC
-        goal2Integer = PICSerialPort.ReadByte                                                   'Read the goal 2 data from PIC
-        motorsHomeInteger = PICSerialPort.ReadByte                                              'Read if the motors are at home position
+            goal1Integer = PICSerialPort.ReadByte                                                   'Read the goal 1 data from PIC
+            goal2Integer = PICSerialPort.ReadByte                                                   'Read the goal 2 data from PIC
+            motorsHomeInteger = PICSerialPort.ReadByte                                              'Read if the motors are at home position
 
-        Goal1TextBox.Text = (CInt(goal1Integer).ToString)                                       'Write the scores on the display for the player to see
-        Goal2TextBox.Text = (CInt(goal2Integer).ToString)                                       '/
+            Goal1TextBox.Text = (CInt(goal1Integer).ToString)                                       'Write the scores on the display for the player to see
+            Goal2TextBox.Text = (CInt(goal2Integer).ToString)                                       '/
 
-        If Not motorsHomeInteger = 0 Then                                                       'Last PIC byte determines if the motor is back at home or not
-            strikerReadyBoolean = True                                                          '0 indicates that it is not at home, anything but that does
-        Else                                                                                    '-/
-            strikerReadyBoolean = False                                                         '/
+            If Not motorsHomeInteger = 0 Then                                                       'Last PIC byte determines if the motor is back at home or not
+                strikerReadyBoolean = True                                                          '0 indicates that it is not at home, anything but that does
+            Else                                                                                    '-/
+                strikerReadyBoolean = False                                                         '/
+            End If
+
+            PicHandTextBox.Text = CStr(receivedHeaderInteger)                                       'Display all the RAW PIC DATA for the user
+            Goal1InTextBox.Text = CStr(goal1Integer)                                                '--/
+            Goal2InTextBox.Text = CStr(goal2Integer)                                                '-/
+            StrikerReadyTextBox.Text = CStr(motorsHomeInteger)                                      '/
         End If
-
-        PicHandTextBox.Text = CStr(receivedHeaderInteger)                                       'Display all the RAW PIC DATA for the user
-        Goal1InTextBox.Text = CStr(goal1Integer)                                                '--/
-        Goal2InTextBox.Text = CStr(goal2Integer)                                                '-/
-        StrikerReadyTextBox.Text = CStr(motorsHomeInteger)                                      '/
 
     End Sub
 
@@ -892,102 +751,102 @@ Public Class PIXYData
     '3.75k then were is a mistake.
     Sub PuckPointSub()
 
-        Dim strikerVelocitySingle As Single                                                     'Dimension of the set velocity of the motors/striker
-        Dim xInchSingle As Single                                                               'Dimension of the x conversion number based on quadrant
-        Dim yInchSingle As Single                                                               'Dimension of the y conversion number based on quadrant
-        Dim puckDeltaXInteger As Integer                                                        'Dimension of the displacement of the puck from the center x
-        Dim puckDeltaYInteger As Integer                                                        'Dimension of the displacement of the puck from the center y
-        Dim xMotorDirectionBoolean As Boolean                                                   'Dimension of the x motor for right and left. True indicates right
-        Dim xStepDouble As Double                                                               'Dimension of the number of x axis steps to be sent out
-        Dim yStepDouble As Double                                                               'Dimension of the number of y axis steps to be sent out
-        Dim xDistanceSingle As Single                                                           'Dimension of the number of inches the puck is displaced in x
-        Dim yDistanceSingle As Single                                                           'Dimension of the number of inches the puck is displaced in y
-        Dim xStepByte As Byte()                                                                 'Dimension of the byte to hold all the x value of steps
-        Dim yStepByte As Byte()                                                                 'Dimension of the byte to hold all the y value of steps
-        Dim sendByte(4) As Byte                                                                 'Dimension of the full byte to be sent to the PIC
+        Dim strikerVelocitySingle As Single                                                         'Dimension of the set velocity of the motors/striker
+        Dim xInchSingle As Single                                                                   'Dimension of the x conversion number based on quadrant
+        Dim yInchSingle As Single                                                                   'Dimension of the y conversion number based on quadrant
+        Dim puckDeltaXInteger As Integer                                                            'Dimension of the displacement of the puck from the center x
+        Dim puckDeltaYInteger As Integer                                                            'Dimension of the displacement of the puck from the center y
+        Dim xMotorDirectionBoolean As Boolean                                                       'Dimension of the x motor for right and left. True indicates right
+        Dim xStepDouble As Double                                                                   'Dimension of the number of x axis steps to be sent out
+        Dim yStepDouble As Double                                                                   'Dimension of the number of y axis steps to be sent out
+        Dim xDistanceSingle As Single                                                               'Dimension of the number of inches the puck is displaced in x
+        Dim yDistanceSingle As Single                                                               'Dimension of the number of inches the puck is displaced in y
+        Dim xStepByte As Byte()                                                                     'Dimension of the byte to hold all the x value of steps
+        Dim yStepByte As Byte()                                                                     'Dimension of the byte to hold all the y value of steps
+        Dim sendByte(4) As Byte                                                                     'Dimension of the full byte to be sent to the PIC
 
 
-        strikerVelocitySingle = velocitySingle                                                  'Set the velocity of the motor
+        strikerVelocitySingle = velocitySingle                                                      'Set the velocity of the motor
 
 
-        If xLocationInteger(1) <= 153 Then                                                      'Based on the current location get the proper inches/point conversion
-            If yLocationInteger(1) <= 145 Then                                                  'from each quadrant from the center point
-                xInchSingle = xInchConversionSingle(0)                                          '-----------/
-                yInchSingle = yInchConversionSingle(0)                                          '----------/
-            Else                                                                                '---------/
-                xInchSingle = xInchConversionSingle(2)                                          '--------/
-                yInchSingle = yInchConversionSingle(2)                                          '-------/
+        If xLocationInteger(1) <= 153 Then                                                          'Based on the current location get the proper inches/point conversion
+            If yLocationInteger(1) <= 145 Then                                                      'from each quadrant from the center point
+                xInchSingle = xInchConversionSingle(0)                                              '-----------/
+                yInchSingle = yInchConversionSingle(0)                                              '----------/
+            Else                                                                                    '---------/
+                xInchSingle = xInchConversionSingle(2)                                              '--------/
+                yInchSingle = yInchConversionSingle(2)                                              '-------/
             End If
-        Else                                                                                    '------/
-            If yLocationInteger(1) <= 145 Then                                                  '-----/
-                xInchSingle = xInchConversionSingle(1)                                          '----/
-                yInchSingle = yInchConversionSingle(1)                                          '---/
-            Else                                                                                '--/
-                xInchSingle = xInchConversionSingle(3)                                          '-/
-                yInchSingle = yInchConversionSingle(3)                                          '/
+        Else                                                                                        '------/
+            If yLocationInteger(1) <= 145 Then                                                      '-----/
+                xInchSingle = xInchConversionSingle(1)                                              '----/
+                yInchSingle = yInchConversionSingle(1)                                              '---/
+            Else                                                                                    '--/
+                xInchSingle = xInchConversionSingle(3)                                              '-/
+                yInchSingle = yInchConversionSingle(3)                                              '/
             End If
         End If
 
 
-        puckDeltaXInteger = callibrations(0) - xLocationInteger(1)                              'Get the displacement from center point
-        puckDeltaYInteger = callibrations(9) - yLocationInteger(1)                              '/
+        puckDeltaXInteger = callibrations(0) - xLocationInteger(1)                                  'Get the displacement from center point
+        puckDeltaYInteger = callibrations(9) - yLocationInteger(1)                                  '/
 
-        If puckDeltaXInteger < 0 Then                                                           'Sets if the x displacement is right or left from home
-            xMotorDirectionBoolean = True                                                       '--/
-        Else                                                                                    '-/
-            xMotorDirectionBoolean = False                                                      '/
+        If puckDeltaXInteger < 0 Then                                                               'Sets if the x displacement is right or left from home
+            xMotorDirectionBoolean = True                                                           '--/
+        Else                                                                                        '-/
+            xMotorDirectionBoolean = False                                                          '/
         End If
 
 
-        xStepDouble = Abs(puckDeltaXInteger) * xInchSingle                                      'Get the amount of inches needed to get to the displacement
+        xStepDouble = Abs(puckDeltaXInteger) * xInchSingle                                          'Get the amount of inches needed to get to the displacement
 
-        Try                                                                                     'If the displacement distance is larger than test area, set to max
-            If xStepDouble > widthSingle Then xStepDouble = widthSingle                         '--/
-        Catch ex As Exception                                                                   '-/
-            If xStepDouble > 18.5 Then xStepDouble = 18.5                                       '/
+        Try                                                                                         'If the displacement distance is larger than test area, set to max
+            If xStepDouble > widthSingle Then xStepDouble = widthSingle                             '--/
+        Catch ex As Exception                                                                       '-/
+            If xStepDouble > 18.5 Then xStepDouble = 18.5                                           '/
         End Try
 
-        xDistanceSingle = CSng(xStepDouble)                                                     'Save the distance to be displayed on the form
-        XDistTextBox.Text = CStr(xDistanceSingle)                                               '/
-        xStepDouble = CInt(xStepDouble / strikerVelocitySingle)                                 'Get the step value based on the distance
+        xDistanceSingle = CSng(xStepDouble)                                                         'Save the distance to be displayed on the form
+        XDistTextBox.Text = CStr(xDistanceSingle)                                                   '/
+        xStepDouble = CInt(xStepDouble / strikerVelocitySingle)                                     'Get the step value based on the distance
 
 
-        yStepDouble = Abs(puckDeltaYInteger) * yInchSingle                                      'Get the amount of inches needed to get to the displacement
+        yStepDouble = Abs(puckDeltaYInteger) * yInchSingle                                          'Get the amount of inches needed to get to the displacement
 
-        Try                                                                                     'If the displacement distance is larger than test area, set to max
-            If yStepDouble > heightSingle Then yStepDouble = heightSingle                       '--/
-        Catch ex As Exception                                                                   '-/
-            If yStepDouble > 15 Then yStepDouble = 15                                           '/
+        Try                                                                                         'If the displacement distance is larger than test area, set to max
+            If yStepDouble > heightSingle Then yStepDouble = heightSingle                           '--/
+        Catch ex As Exception                                                                       '-/
+            If yStepDouble > 15 Then yStepDouble = 15                                               '/
         End Try
 
-        yDistanceSingle = CSng(yStepDouble)                                                     'Save the distance to be displayed on the form
-        YDistTextBox.Text = CStr(yDistanceSingle)                                               '/
-        yStepDouble = CInt(yStepDouble / strikerVelocitySingle)                                 'Get the step value based on the distance
+        yDistanceSingle = CSng(yStepDouble)                                                         'Save the distance to be displayed on the form
+        YDistTextBox.Text = CStr(yDistanceSingle)                                                   '/
+        yStepDouble = CInt(yStepDouble / strikerVelocitySingle)                                     'Get the step value based on the distance
 
-        sendByte(0) = CByte(94)                                                                 'Send Handshake ^ Hex:5E Dec:94
+        sendByte(0) = CByte(94)                                                                     'Send Handshake ^ Hex:5E Dec:94
 
-        If xMotorDirectionBoolean = True Then                                                   'If on the right, Set the MSB of data for x HIGH
-            xStepDouble += 32768                                                                'Add a &H8000 indicating to move right
+        If xMotorDirectionBoolean = True Then                                                       'If on the right, Set the MSB of data for x HIGH
+            xStepDouble += 32768                                                                    'Add a &H8000 indicating to move right
         End If
 
-        xStepByte = IntToByteArrayFunction(CInt(xStepDouble))                                   'Get 4 8-byte words back for x step value. Bytes 2 & 3 hold value
-        sendByte(1) = xStepByte(2)                                                              'MSB byte of x step
-        sendByte(2) = xStepByte(3)                                                              'LSB byte of x step
+        xStepByte = IntToByteArrayFunction(CInt(xStepDouble))                                       'Get 4 8-byte words back for x step value. Bytes 2 & 3 hold value
+        sendByte(1) = xStepByte(2)                                                                  'MSB byte of x step
+        sendByte(2) = xStepByte(3)                                                                  'LSB byte of x step
 
-        yStepByte = IntToByteArrayFunction(CInt(yStepDouble))                                   'Get 4 8-byte words back for y step value. Bytes 2 & 3 hold value
-        sendByte(3) = yStepByte(2)                                                              'MSB byte of y step
-        sendByte(4) = yStepByte(3)                                                              'LSB byte of y step
+        yStepByte = IntToByteArrayFunction(CInt(yStepDouble))                                       'Get 4 8-byte words back for y step value. Bytes 2 & 3 hold value
+        sendByte(3) = yStepByte(2)                                                                  'MSB byte of y step
+        sendByte(4) = yStepByte(3)                                                                  'LSB byte of y step
 
-        If GoButton.Visible = False Or manualGoBoolean Then                                     'Send data if the manual is off or
-            PICSerialPort.Write(sendByte, 0, 5)                                                 'if the GO button has been pressed
-            manualGoBoolean = False                                                             'Clear boolean to wait until next press
+        If GoButton.Visible = False Or manualGoBoolean Then                                         'Send data if the manual is off or
+            PICSerialPort.Write(sendByte, 0, 5)                                                     'if the GO button has been pressed
+            manualGoBoolean = False                                                                 'Clear boolean to wait until next press
         End If
 
-        VBHeadTextBox.Text = CStr(sendByte(0))                                                  'Displays the data sent out for the user
-        XMSBTextBox.Text = CStr(sendByte(1))                                                    '---/
-        XLSBTextBox.Text = CStr(sendByte(2))                                                    '--/
-        YMSBTextBox.Text = CStr(sendByte(3))                                                    '-/
-        YLSBTextBox.Text = CStr(sendByte(4))                                                    '/
+        VBHeadTextBox.Text = CStr(sendByte(0))                                                      'Displays the data sent out for the user
+        XMSBTextBox.Text = CStr(sendByte(1))                                                        '---/
+        XLSBTextBox.Text = CStr(sendByte(2))                                                        '--/
+        YMSBTextBox.Text = CStr(sendByte(3))                                                        '-/
+        YLSBTextBox.Text = CStr(sendByte(4))                                                        '/
 
     End Sub
 
@@ -998,14 +857,14 @@ Public Class PIXYData
     'sent back. The MSB is in byte(2) and LSB is in byte(3).
     Function IntToByteArrayFunction(valueInteger As Integer) As Byte()
 
-        Dim result(Len(New Integer) - 1) As Byte                                                '4 Bytes
-        Dim mask = &HFF                                                                         '0xFF - Hexadecimal for 1111 1111
+        Dim result(Len(New Integer) - 1) As Byte                                                    '4 Bytes
+        Dim mask = &HFF                                                                             '0xFF - Hexadecimal for 1111 1111
 
-        For i As Integer = result.Length - 1 To 0 Step -1                                       'Get all the bytes of data from the inserted value
-            result(i) = CByte(valueInteger And mask)                                            '/
-            valueInteger >>= 8                                                                  'Shift from left to right 8 bits
-        Next                                                                                    '/
-        Return result                                                                           'Return 4 bytes of data
+        For i As Integer = result.Length - 1 To 0 Step -1                                           'Get all the bytes of data from the inserted value
+            result(i) = CByte(valueInteger And mask)                                                '/
+            valueInteger >>= 8                                                                      'Shift from left to right 8 bits
+        Next                                                                                        '/
+        Return result                                                                               'Return 4 bytes of data
 
     End Function
 
@@ -1015,51 +874,51 @@ Public Class PIXYData
     'Sub to calculate the Velocity of the puck and which direction it needs to move to.
     Sub IntersectionPointSub()
 
-        Dim strikerVelocitySingle As Single                                                     'Dimension of the striker velocity
-        Dim puckDeltaXInteger As Integer                                                        'Dimension of the displacement x of the puck
-        Dim puckDeltaYInteger As Integer                                                        'Dimension of the displacemetn y of the puck
-        Dim puckVelocityDouble As Double                                                        'Dimension of the puck velocity 
-        Dim puckVelocityBoolean As Boolean = True                                               'Dimension of the puck is moving (true)
-        Dim aPointDouble As Double                                                              'Dimension of the a value of quadratic
-        Dim bPointDouble As Double                                                              'Dimension of the b value of quadratic
-        Dim cPointDouble As Double                                                              'Dimension of the c value of quadratic
-        Dim distanceDouble As Double                                                            'Dimenison of the linear distance from puck to striker
-        Dim timeDouble As Double                                                                'Dimenison of the time of intercept
-        Dim intersectionYInteger As Integer                                                     'Dimension of the x value of intersection
-        Dim intersectionXInteger As Integer                                                     'Dimension of the y value of IN
+        Dim strikerVelocitySingle As Single                                                         'Dimension of the striker velocity
+        Dim puckDeltaXInteger As Integer                                                            'Dimension of the displacement x of the puck
+        Dim puckDeltaYInteger As Integer                                                            'Dimension of the displacemetn y of the puck
+        Dim puckVelocityDouble As Double                                                            'Dimension of the puck velocity 
+        Dim puckVelocityBoolean As Boolean = True                                                   'Dimension of the puck is moving (true)
+        Dim aPointDouble As Double                                                                  'Dimension of the a value of quadratic
+        Dim bPointDouble As Double                                                                  'Dimension of the b value of quadratic
+        Dim cPointDouble As Double                                                                  'Dimension of the c value of quadratic
+        Dim distanceDouble As Double                                                                'Dimenison of the linear distance from puck to striker
+        Dim timeDouble As Double                                                                    'Dimenison of the time of intercept
+        Dim intersectionYInteger As Integer                                                         'Dimension of the x value of intersection
+        Dim intersectionXInteger As Integer                                                         'Dimension of the y value of IN
 
 
-        If Not xLocationInteger(1) = 0 Then                                                     'Test in location data is good fro velocity
-            puckDeltaXInteger = callibrations(0) - xLocationInteger(1)                          'Get the displacement from center point
-            puckDeltaYInteger = callibrations(9) - yLocationInteger(1)                          '/
+        If Not xLocationInteger(1) = 0 Then                                                         'Test in location data is good fro velocity
+            puckDeltaXInteger = callibrations(0) - xLocationInteger(1)                              'Get the displacement from center point
+            puckDeltaYInteger = callibrations(9) - yLocationInteger(1)                              '/
 
-            aPointDouble = Abs(puckDeltaXInteger) ^ (2)                                         'Get the linear distance to the puck from striker at home
-            bPointDouble = Abs(puckDeltaYInteger) ^ (2)                                         '--/
-            cPointDouble = (aPointDouble + bPointDouble) ^ (1 / 2)                              '-/
-            distanceDouble = cPointDouble * 0.223                                               '/
+            aPointDouble = Abs(puckDeltaXInteger) ^ (2)                                             'Get the linear distance to the puck from striker at home
+            bPointDouble = Abs(puckDeltaYInteger) ^ (2)                                             '--/
+            cPointDouble = (aPointDouble + bPointDouble) ^ (1 / 2)                                  '-/
+            distanceDouble = cPointDouble * 0.223                                                   '/
 
-            Try                                                                                 'Test to see if the puck is moving
-                puckVelocityDouble = (xLocationInteger(1) - xLocationInteger(0)) /              '-/
-                    (yLocationInteger(1) - yLocationInteger(0))                                 '/
-                puckVelocityDouble = puckVelocityDouble * 0.223 * (50)                          'Convert the velocity into inches/sec
-            Catch ex As Exception                                                               'If puck not moving set to flag to move motors to puck location
-                puckVelocityBoolean = False                                                     '/
+            Try                                                                                     'Test to see if the puck is moving
+                puckVelocityDouble = (xLocationInteger(1) - xLocationInteger(0)) /                  '-/
+                    (yLocationInteger(1) - yLocationInteger(0))                                     '/
+                puckVelocityDouble = puckVelocityDouble * 0.223 * (50)                              'Convert the velocity into inches/sec
+            Catch ex As Exception                                                                   'If puck not moving set to flag to move motors to puck location
+                puckVelocityBoolean = False                                                         '/
             End Try
 
 
-            aPointDouble = (strikerVelocitySingle ^ 2) - (puckVelocityDouble ^ 2)               'Get the two values of time that the striker can intersect the puck
-            bPointDouble = 2 * (distanceDouble * puckVelocityDouble)                            '-/
-            cPointDouble = (-(distanceDouble) ^ 2)                                              '/
+            aPointDouble = (strikerVelocitySingle ^ 2) - (puckVelocityDouble ^ 2)                   'Get the two values of time that the striker can intersect the puck
+            bPointDouble = 2 * (distanceDouble * puckVelocityDouble)                                '-/
+            cPointDouble = (-(distanceDouble) ^ 2)                                                  '/
 
-            timeDouble = QuadraticFunction(aPointDouble, bPointDouble, cPointDouble)            'Function to return the value of time of intersection
+            timeDouble = QuadraticFunction(aPointDouble, bPointDouble, cPointDouble)                'Function to return the value of time of intersection
 
-            If puckVelocityBoolean Then                                                         'If the puck is moving, Get the x and y value of intersection
-                intersectionXInteger = (xLocationInteger(1) +                                   '---/
-                    (CInt(puckVelocityDouble) * CInt(timeDouble)))                              '--/
-                intersectionYInteger = (yLocationInteger(1) +                                   '-/
-                    CInt(puckVelocityDouble) * CInt(timeDouble))                                '/
-            Else                                                                                'If the puck is not moving, go to puck point sub to go to current puck location
-                PuckPointSub()                                                                  '/
+            If puckVelocityBoolean Then                                                             'If the puck is moving, Get the x and y value of intersection
+                intersectionXInteger = (xLocationInteger(1) +                                       '---/
+                    (CInt(puckVelocityDouble) * CInt(timeDouble)))                                  '--/
+                intersectionYInteger = (yLocationInteger(1) +                                       '-/
+                    CInt(puckVelocityDouble) * CInt(timeDouble))                                    '/
+            Else                                                                                    'If the puck is not moving, go to puck point sub to go to current puck location
+                PuckPointSub()                                                                      '/
             End If
 
         End If
@@ -1073,24 +932,24 @@ Public Class PIXYData
     'If both are positive then the shortest time is sent back.
     Function QuadraticFunction(a As Double, b As Double, c As Double) As Double
 
-        Dim time1Double As Double                                                               'Dimension for the first time
-        Dim time2Double As Double                                                               'Dimension for the second time
+        Dim time1Double As Double                                                                   'Dimension for the first time
+        Dim time2Double As Double                                                                   'Dimension for the second time
 
-        time1Double = ((-b) + ((b ^ 2) - 4 * (a * c)) ^ (1 / 2))                                'Get the first time from the quadratic equation
-        time1Double = time1Double / (2 * a)                                                     '+
+        time1Double = ((-b) + ((b ^ 2) - 4 * (a * c)) ^ (1 / 2))                                    'Get the first time from the quadratic equation
+        time1Double = time1Double / (2 * a)                                                         '+
 
 
-        time2Double = ((-b) - ((b ^ 2) - 4 * (a * c)) ^ (1 / 2))                                'Get the second time from the quadratic equation
-        time2Double = time2Double / (2 * a)                                                     '-
+        time2Double = ((-b) - ((b ^ 2) - 4 * (a * c)) ^ (1 / 2))                                    'Get the second time from the quadratic equation
+        time2Double = time2Double / (2 * a)                                                         '-
 
         If time1Double > 0 Or time2Double > 0 Then
-            If time1Double < time2Double Then                                                   'Determines witch of the two times will be sent back
-                Return time1Double                                                              '----/
-            Else                                                                                '---/
-                Return time2Double                                                              '--/
+            If time1Double < time2Double Then                                                       'Determines witch of the two times will be sent back
+                Return time1Double                                                                  '----/
+            Else                                                                                    '---/
+                Return time2Double                                                                  '--/
             End If
-        Else                                                                                    '-/
-            Return Nothing                                                                      '/
+        Else                                                                                        '-/
+            Return Nothing                                                                          '/
         End If
 
     End Function
@@ -1125,24 +984,24 @@ Public Class PIXYData
     'Sub for() the Graphic Background For the Table Picture so that User knows the orientation
     Sub AirHockeyGraphicsSub()
 
-        Dim linePen As New Pen(Color.Black, 100)                                                'Dimension of the pen used to draw the robot goal
-        Dim rightInteger As Integer                                                             'Dimensions of the 4 corners locations of the picture box
-        Dim leftInteger As Integer                                                              '--/
-        Dim topInteger As Integer                                                               '-/
-        Dim bottomInteger As Integer                                                            '/
-        Dim xMidInteger As Integer                                                              'Dimensions of the middle points of the picture box
-        Dim yMidInteger As Integer                                                              '/
+        Dim linePen As New Pen(Color.Black, 100)                                                    'Dimension of the pen used to draw the robot goal
+        Dim rightInteger As Integer                                                                 'Dimensions of the 4 corners locations of the picture box
+        Dim leftInteger As Integer                                                                  '--/
+        Dim topInteger As Integer                                                                   '-/
+        Dim bottomInteger As Integer                                                                '/
+        Dim xMidInteger As Integer                                                                  'Dimensions of the middle points of the picture box
+        Dim yMidInteger As Integer                                                                  '/
 
-        bottomInteger = Me.Height - (TablePictureBox.Height - 420)                              'Calculated locations for the graphics locations based on screen size
-        rightInteger = Me.Width - 315                                                           '--/
-        topInteger = 1                                                                          '-/
-        leftInteger = 1                                                                         '/
+        bottomInteger = Me.Height - (TablePictureBox.Height - 420)                                  'Calculated locations for the graphics locations based on screen size
+        rightInteger = Me.Width - 315                                                               '--/
+        topInteger = 1                                                                              '-/
+        leftInteger = 1                                                                             '/
 
-        xMidInteger = (rightInteger + leftInteger) \ 2                                          'Calculated center location based on the 4 corners
-        yMidInteger = (topInteger + bottomInteger) \ 2                                          '/
+        xMidInteger = (rightInteger + leftInteger) \ 2                                              'Calculated center location based on the 4 corners
+        yMidInteger = (topInteger + bottomInteger) \ 2                                              '/
 
-        TablePictureBox.CreateGraphics.DrawEllipse(linePen, CSng(xMidInteger / 4),              'Draw the goal for user orientation of the display
-                                                   topInteger - 450, 1000, 500)                 '/
+        TablePictureBox.CreateGraphics.DrawEllipse(linePen, CSng(xMidInteger / 4),                  'Draw the goal for user orientation of the display
+                                                   topInteger - 450, 1000, 500)                     '/
 
     End Sub
 
@@ -1150,36 +1009,36 @@ Public Class PIXYData
     'Sub for the Graphic on the Table Picture Box so that the location of the PUCK can be seen
     Sub TablePictureBoxSub(xLocationInteger As Integer, yLocationInteger As Integer, ByVal callibration As Array, ByVal stateBoolean As Array)
 
-        Dim yScaleSingle As Single                                                              'Dimensions of the scaling of the PIXY points to the Picture box
-        Dim xScaleSingle As Single                                                              '/
-        Dim xInteger As Integer                                                                 'Dimensions of the current puck locations to the display
-        Dim yInteger As Integer                                                                 '/
-        Dim rightInteger As Integer                                                             'Dimensions of the 4 corners locations of the picture box
-        Dim leftInteger As Integer                                                              '--/
-        Dim topInteger As Integer                                                               '-/
-        Dim bottomInteger As Integer                                                            '/
-        Dim xMidInteger As Integer                                                              'Dimensions of the middle points of the picture box
-        Dim yMidInteger As Integer                                                              '/
-        Dim puckBrush As New SolidBrush(Color.GreenYellow)                                      'Dimensions for the Brushes used to make the green puck and have it erased
-        Dim refreshBrush As New SolidBrush(Color.White)                                         '/
-        Dim callibration2() As Integer                                                          'Copy of the Inserted callibration array
-        Dim graphicStateBoolean() As Boolean                                                    'Copy of the Inserted state of what puck graphic is to be drawn
-        Dim callibrationsx(4) As Integer                                                        'Dimension to get the MAX and MIN of the x callibration values
-        Dim callibrationsy(4) As Integer                                                        'Dimension to get tha MAX and MIN of the y callibration values
-        Static minInteger As Integer                                                            'Dimension of the MAX and MIN found in the MinMaxSub
-        Static maxInteger As Integer                                                            '/
+        Dim yScaleSingle As Single                                                                  'Dimensions of the scaling of the PIXY points to the Picture box
+        Dim xScaleSingle As Single                                                                  '/
+        Dim xInteger As Integer                                                                     'Dimensions of the current puck locations to the display
+        Dim yInteger As Integer                                                                     '/
+        Dim rightInteger As Integer                                                                 'Dimensions of the 4 corners locations of the picture box
+        Dim leftInteger As Integer                                                                  '--/
+        Dim topInteger As Integer                                                                   '-/
+        Dim bottomInteger As Integer                                                                '/
+        Dim xMidInteger As Integer                                                                  'Dimensions of the middle points of the picture box
+        Dim yMidInteger As Integer                                                                  '/
+        Dim puckBrush As New SolidBrush(Color.GreenYellow)                                          'Dimensions for the Brushes used to make the green puck and have it erased
+        Dim refreshBrush As New SolidBrush(Color.White)                                             '/
+        Dim callibration2() As Integer                                                              'Copy of the Inserted callibration array
+        Dim graphicStateBoolean() As Boolean                                                        'Copy of the Inserted state of what puck graphic is to be drawn
+        Dim callibrationsx(4) As Integer                                                            'Dimension to get the MAX and MIN of the x callibration values
+        Dim callibrationsy(4) As Integer                                                            'Dimension to get tha MAX and MIN of the y callibration values
+        Static minInteger As Integer                                                                'Dimension of the MAX and MIN found in the MinMaxSub
+        Static maxInteger As Integer                                                                '/
 
-        AirHockeyGraphicsSub()                                                                  'Sub to Draw the background of picture box of the goal
+        AirHockeyGraphicsSub()                                                                      'Sub to Draw the background of picture box of the goal
 
-        bottomInteger = Me.Height - (TablePictureBox.Height - 420)                              'Calculated locations for the graphics locations based on screen size
-        rightInteger = Me.Width - 315                                                           '--/
-        topInteger = 1                                                                          '-/
-        leftInteger = 1                                                                         '/
+        bottomInteger = Me.Height - (TablePictureBox.Height - 420)                                  'Calculated locations for the graphics locations based on screen size
+        rightInteger = Me.Width - 315                                                               '--/
+        topInteger = 1                                                                              '-/
+        leftInteger = 1                                                                             '/
 
-        xMidInteger = (rightInteger + leftInteger) \ 2                                          'Calculated center location based on the 4 corners
-        yMidInteger = (topInteger + bottomInteger) \ 2                                          '/
+        xMidInteger = (rightInteger + leftInteger) \ 2                                              'Calculated center location based on the 4 corners
+        yMidInteger = (topInteger + bottomInteger) \ 2                                              '/
 
-        graphicStateBoolean = CType(stateBoolean, Boolean())                                    'Reset the copy of state from the array for testing
+        graphicStateBoolean = CType(stateBoolean, Boolean())                                        'Reset the copy of state from the array for testing
 
 
         'Graph the Center Callibration
@@ -1223,41 +1082,41 @@ Public Class PIXYData
         'Graph the current location of the puck
         If graphicStateBoolean(5) Then
 
-            callibration2 = CType(callibration, Integer())                                      'Reset the copy of state from the array for testing
+            callibration2 = CType(callibration, Integer())                                          'Reset the copy of state from the array for testing
 
-            For i = 0 To 9 Step 2                                                               'Get the X callibration values in one array
-                Dim valueInteger As Integer                                                     '-----/
-                Dim locationInteger As Integer                                                  '----/
+            For i = 0 To 9 Step 2                                                                   'Get the X callibration values in one array
+                Dim valueInteger As Integer                                                         '-----/
+                Dim locationInteger As Integer                                                      '----/
 
-                valueInteger = callibration2(i)                                                 '---/
-                callibrationsx(locationInteger) = valueInteger                                  '--/
-                locationInteger += 1                                                            '-/
-            Next                                                                                '/
-            For i = 1 To 9 Step 2                                                               'Get the Y callibration values in one array
-                Dim valueInteger As Integer                                                     '-----/
-                Dim locationInteger As Integer                                                  '----/
+                valueInteger = callibration2(i)                                                     '---/
+                callibrationsx(locationInteger) = valueInteger                                      '--/
+                locationInteger += 1                                                                '-/
+            Next                                                                                    '/
+            For i = 1 To 9 Step 2                                                                   'Get the Y callibration values in one array
+                Dim valueInteger As Integer                                                         '-----/
+                Dim locationInteger As Integer                                                      '----/
 
-                valueInteger = callibration2(i)                                                 '---/
-                callibrationsy(locationInteger) = valueInteger                                  '--/
-                locationInteger += 1                                                            '-/
-            Next                                                                                '/
+                valueInteger = callibration2(i)                                                     '---/
+                callibrationsy(locationInteger) = valueInteger                                      '--/
+                locationInteger += 1                                                                '-/
+            Next                                                                                    '/
 
-            MinMaxSub(callibrationsx, minInteger, maxInteger)                                   'Get the max and min values of the x callibration
-            xScaleSingle = CSng((rightInteger - leftInteger) \ (maxInteger - minInteger))       'Set the x scaling
-            xInteger = CInt(rightInteger - ((xLocationInteger - minInteger) * xScaleSingle))    'Get the x current graph location based on scaling
+            MinMaxSub(callibrationsx, minInteger, maxInteger)                                       'Get the max and min values of the x callibration
+            xScaleSingle = CSng((rightInteger - leftInteger) \ (maxInteger - minInteger))           'Set the x scaling
+            xInteger = CInt(rightInteger - ((xLocationInteger - minInteger) * xScaleSingle))        'Get the x current graph location based on scaling
 
-            MinMaxSub(callibrationsy, minInteger, maxInteger)                                   'Get the max and min values of the y callibration
-            yScaleSingle = CSng((bottomInteger - topInteger) \ (maxInteger - minInteger))       'Set the y scaling
-            yInteger = CInt(bottomInteger - ((yLocationInteger - minInteger) * yScaleSingle))   'Get the y current graph location based on scaling
+            MinMaxSub(callibrationsy, minInteger, maxInteger)                                       'Get the max and min values of the y callibration
+            yScaleSingle = CSng((bottomInteger - topInteger) \ (maxInteger - minInteger))           'Set the y scaling
+            yInteger = CInt(bottomInteger - ((yLocationInteger - minInteger) * yScaleSingle))       'Get the y current graph location based on scaling
 
 
             'Graph the current location
             TablePictureBox.CreateGraphics.FillEllipse(puckBrush, xInteger, yInteger, 100, 100)
-            Sleep(10)
+            Sleep(1000)
             TablePictureBox.CreateGraphics.FillEllipse(refreshBrush, xInteger, yInteger, 100, 100)
 
 
-            AirHockeyGraphicsSub()                                                              'Sub to Draw the background of picture box of the goal
+            AirHockeyGraphicsSub()                                                                  'Sub to Draw the background of picture box of the goal
         End If
 
     End Sub
@@ -1267,20 +1126,20 @@ Public Class PIXYData
     'Sub that gets the min and the max values found in the array of data.
     Sub MinMaxSub(ByVal arry As Array, ByRef minInteger As Integer, ByRef maxInteger As Integer)
 
-        Dim arryInteger() As Integer                                                            'Dimension of the array of all the voltages found.
+        Dim arryInteger() As Integer                                                                'Dimension of the array of all the voltages found.
 
-        arryInteger = CType(arry, Integer())                                                    'Sets the array dimension to be equal to the arry values inserted the sub.
+        arryInteger = CType(arry, Integer())                                                        'Sets the array dimension to be equal to the arry values inserted the sub.
 
-        minInteger = arryInteger(0)                                                             'Gets the first location of the array.
-        maxInteger = arryInteger(0)                                                             '/
+        minInteger = arryInteger(0)                                                                 'Gets the first location of the array.
+        maxInteger = arryInteger(0)                                                                 '/
 
-        For i As Integer = 0 To 4                                                               'Gets all the samples from all the voltages of the array.
-            If arryInteger(i) < minInteger Then minInteger = arryInteger(i)                     'Tests if the current minimum value and sees if it is lower than the minimum voltage of all previous values.
-            If arryInteger(i) > maxInteger Then maxInteger = arryInteger(i)                     'Tests if the current maximum value and sees if it is higher than the maximum voltage of all previous values.
-        Next                                                                                    'Goes to next array location.
+        For i As Integer = 0 To 4                                                                   'Gets all the samples from all the voltages of the array.
+            If arryInteger(i) < minInteger Then minInteger = arryInteger(i)                         'Tests if the current minimum value and sees if it is lower than the minimum voltage of all previous values.
+            If arryInteger(i) > maxInteger Then maxInteger = arryInteger(i)                         'Tests if the current maximum value and sees if it is higher than the maximum voltage of all previous values.
+        Next                                                                                        'Goes to next array location.
 
-        If minInteger = 1023 Then minInteger = 1022                                             'Tests if the Minimum is the absolute maximum value. Sets it to one less of the maximum.
-        If minInteger = maxInteger Then maxInteger = minInteger + 1                             'Tests if the Maximum and the minimum are equal. Sets the maximum to be one more than.
+        If minInteger = 1023 Then minInteger = 1022                                                 'Tests if the Minimum is the absolute maximum value. Sets it to one less of the maximum.
+        If minInteger = maxInteger Then maxInteger = minInteger + 1                                 'Tests if the Maximum and the minimum are equal. Sets the maximum to be one more than.
 
     End Sub
 
@@ -1289,18 +1148,18 @@ Public Class PIXYData
     'Sub routine to display a Message box of the functionality of the program.
     Private Sub AboutToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AboutToolStripMenuItem.Click
         MsgBox("Welcome to Automated AIRHOCKEY." + vbNewLine + vbNewLine +
-                "Communications with the PIXY Camera and Main Board PIC, allows for the program to receive data and to caluate how to move motors." +
-                " This also displays the score and the location of the puck on the board" + vbNewLine + vbNewLine +
-                "Click one of the callibration checkboxes to manually start the center or do all defaults." +
-                "If the center Is selected, then the rest of callibrations need to be done." + vbNewLine + vbNewLine +
-                "Click the Callibration button to save the puck location as a center/corner" + vbNewLine + vbNewLine +
-                "Check the MANUAL GO checkbox to bypass the program to automatically send the data to the PIC to move Motors" +
-                "This Is a SAFETY PRECAUTION for while troubleshooting. To be able to MANUAL READY, MANUAL LOCATION, Or MANUALLY GO. " + vbNewLine + vbNewLine +
-                "Check the MANUAL READY to bypass the receive data from the PIC to allow for the data to be sent out to the pic, CAUTION when Not at home" + vbNewLine + vbNewLine +
-                "Click the MANUAL LOCATION in the TROUBLESHOOTING tab to send the Motors manually to the center postion of the PIXY Area" +
-                "NOTE: The motor needs to be at home location of table" + vbNewLine + vbNewLine +
-                "Click the MANUAL GO to send the data out for when the MANUAL Go checkbox is selected, and/or if the MANUAL READY is selected" +
-                "If the data received from PIC is ready, the MANUAL READY does not need to be pressed" + vbNewLine + vbNewLine +
+                "Communications with the PIXY Camera and Main Board PIC, allows for the program to receive data and to calcuate how to move motors." +
+                " This also displays the score and the location of the puck on the board." + vbNewLine + vbNewLine +
+                "Click one of the callibration checkboxes to manually set the center callibration or do all defaults." +
+                " If the center Is selected, then the rest of callibrations need to be done also." + vbNewLine + vbNewLine +
+                "Click the Callibration button to save the puck location as a center/corner(s)." + vbNewLine + vbNewLine +
+                "Check the MANUAL GO checkbox to bypass the program to automatically send the data to the PIC to move Motors. " +
+                "This Is a SAFETY PRECAUTION for while troubleshooting. Troubleshooting Cautions are MANUAL READY, MANUAL LOCATION, Or MANUALLY GO. " + vbNewLine + vbNewLine +
+                "Check the MANUAL READY to bypass the receive data from the PIC to allow for the data to be sent out to the pic, CAUTION when Not at home." + vbNewLine + vbNewLine +
+                "Click the MANUAL LOCATION to send the Motors manually to the center postion of the PIXY Testing Area. " +
+                "NOTE: The motor needs to be at home location of table." + vbNewLine + vbNewLine +
+                "Click the MANUAL GO to send the data out, when the MANUAL Go checkbox is selected and/or if the MANUAL READY is selected. " +
+                "If the data received from PIC is ready, the MANUAL READY does not need to be pressed." + vbNewLine + vbNewLine +
                 "Click EXIT to leave program.")
     End Sub
 End Class
