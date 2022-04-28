@@ -119,5 +119,11 @@
     </None>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\TableTopViewGraphic1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\TableTopViewGraphic.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>
