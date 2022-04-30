@@ -3,7 +3,7 @@
 'Code for the PIXYCMUcam5 to get data to be sent to the PIC16LF1788.
 'The PIXY will detect the puck that is illuminated in green and the striker.
 'Based on the serial data sent from the PIXY, this code will read and analyze
-'and tell the PIC16LF1788 on what to do in direction the puck will need to move.
+'and tell the PIC16LF1788 on what to do in the direction the puck will need to move.
 
 'Refer to link https://github.com/ToriGomez/PIXY_Spring2022 for original code
 
@@ -17,15 +17,15 @@ Imports System.Threading.Thread
 
 Public Class PIXYData
     Dim receiveBytesPic(10) As Byte                                                                 'All the Bytes of data the PIC will send
-    Dim recieveBytesPixy(15) As Byte                                                                'All the Bytes of data the PIXY will send
+    Dim receiveBytesPixy(15) As Byte                                                                'All the Bytes of data the PIXY will send
     Dim comPort1String As String                                                                    'Both of the Serial Ports used in the program
     Dim comPort2String As String                                                                    '/
     Dim xLocationInteger(10) As Integer                                                             'Save 11 Frames of data arrays for x & y
     Dim yLocationInteger(10) As Integer                                                             '/
     Dim frameInteger As Integer                                                                     'Dimension of the number of saved frame data
     Dim picDataBoolean As Boolean = False                                                           '/
-    Dim strikerReadyBoolean As Boolean = False                                                      'Dimension to wait until the striker/motors are in home postion
-    Dim callibrations(10) As Integer                                                                'Holds all the save coordinates from callibration
+    Dim strikerReadyBoolean As Boolean = False                                                      'Dimension to wait until the striker/motors are in home position
+    Dim calibrationsave(10) As Integer                                                              'Holds all the save coordinates from calibration
     Dim xInchConversionSingle(5) As Single                                                          'Holds all the X step conversions
     Dim yInchConversionSingle(5) As Single                                                          'Holds all the y step conversions
     Dim graphicsDisplayBoolean(5) As Boolean                                                        'Boolean to know what graphic of puck (location) will be seen
@@ -53,8 +53,8 @@ Public Class PIXYData
         PIXYSerialPort.Open()                                                                       'Open the port to receive data
 
 
-        CallibrateButton.Visible = False                                                            'Hide callibrate button untill one checkbox is selected
-        TRCheckBox.Visible = False                                                                  'Hide the other callibrations until the center is done
+        CalibrateButton.Visible = False                                                             'Hide calibrate button until one checkbox is selected
+        TRCheckBox.Visible = False                                                                  'Hide the other calibrations until the center is done
         TLCheckBox.Visible = False                                                                  '--/
         BRCheckBox.Visible = False                                                                  '-/
         BLCheckBox.Visible = False                                                                  '/
@@ -67,16 +67,16 @@ Public Class PIXYData
 
 
 
-        callibrations(0) = 153                                                                      'Default coordinates so that it doesn't have to callibrated at every bootup
-        callibrations(1) = 145                                                                      '--------/
-        callibrations(2) = 70                                                                       '-------/
-        callibrations(3) = 110                                                                      '------/
-        callibrations(4) = 237                                                                      '-----/
-        callibrations(5) = 110                                                                      '----/
-        callibrations(6) = 70                                                                       '---/
-        callibrations(7) = 180                                                                      '--/
-        callibrations(8) = 233                                                                      '-/
-        callibrations(9) = 180                                                                      '/
+        calibrationsave(0) = 153                                                                      'Default coordinates so that it doesn't have to calibrated at every bootup
+        calibrationsave(1) = 145                                                                      '--------/
+        calibrationsave(2) = 70                                                                       '-------/
+        calibrationsave(3) = 110                                                                      '------/
+        calibrationsave(4) = 237                                                                      '-----/
+        calibrationsave(5) = 110                                                                      '----/
+        calibrationsave(6) = 70                                                                       '---/
+        calibrationsave(7) = 180                                                                      '--/
+        calibrationsave(8) = 233                                                                      '-/
+        calibrationsave(9) = 180                                                                      '/
 
         xInchConversionSingle(0) = 0.2228915                                                        'Default inch conversions from default coordinates
         yInchConversionSingle(0) = 0.2142857                                                        '------/
@@ -89,7 +89,7 @@ Public Class PIXYData
 
         MotorVTextBox.Text = "0.004"                                                                'Default Velocity of the Motors
 
-        GoCheckBox.Checked = True                                                                   'Manual Go for VB Send to PIC for saftey
+        GoCheckBox.Checked = True                                                                   'Manual Go for VB Send to PIC for safety
         manualGoBoolean = False                                                                     'Boolean for manual Go false until Go Button Pressed
         CautionLabel.Text = "TROUBLESHOOTING"                                                       'In Manual mode, it is in the Troubleshooting state
         CautionLabel.ForeColor = Color.Green                                                        'Green for Safety
@@ -100,7 +100,8 @@ Public Class PIXYData
 
 
 
-    'Sub for when the form is changed in size. The monitor will display in full screen, this portions the controls to this.
+    'Sub for when the form is changed in size. 
+    'The monitor will display In full screen, this portion controls the formatting Of the form.
     Private Sub PIXYData_Resize(sender As Object, e As EventArgs) Handles Me.Resize
 
         ExitButton.Top = Me.Height - 70
@@ -120,7 +121,7 @@ Public Class PIXYData
         Timer.Enabled = False                                                                       'Disables timer to interrupt again
 
         If portRenameBoolean = False Then
-            If timerTestInteger >= 100 Then                                                         'If the PIXY communictation port is correct,
+            If timerTestInteger >= 100 Then                                                         'If the PIXY communication port is correct,
                 SerialPortRenameSub()                                                               'Sub that will rename the port being used for the PIXY
                 timerTestInteger = 0                                                                'Reset the timer 
             End If
@@ -141,7 +142,7 @@ Public Class PIXYData
 
         SignatureLocationSub()                                                                      'Displays the current puck Location seen.
 
-        If picDataBoolean Then                                                                      'Wait until the PIC data has beed read
+        If picDataBoolean Then                                                                      'Wait until the PIC data has been read
             PicRawSerialSub()                                                                       'Get the data from the PIC
         End If
 
@@ -171,7 +172,7 @@ Public Class PIXYData
 
 
 
-    'Sub for read the serial data from the PIC16LF1788 which will send 14 bytes, receive up to 15 bytes of data in case of errors.
+    'Sub to read the serial data from the PIC16LF1788 which will send 14 bytes, receive up to 15 bytes of data in case of errors.
     Private Sub PIXYSerialPort_DataReceived(sender As Object, e As SerialDataReceivedEventArgs) Handles PIXYSerialPort.DataReceived
         Dim byte0Integer As Integer                                                                 'Dimension for the LSB sync data, can be 0x55 or 0x56
         Dim byte1Integer As Integer                                                                 'Dimension for the MSB sync data, is 0xaa
@@ -187,7 +188,7 @@ Public Class PIXYData
 
         CheckForIllegalCrossThreadCalls = False                                                     'Disables for there to be errors with cross thread
 
-        PIXYSerialPort.Read(recieveBytesPixy, 0, 15)                                                'Save serial
+        PIXYSerialPort.Read(receiveBytesPixy, 0, 15)                                                'Save serial
 
 
         byte0Integer = PIXYSerialPort.ReadByte                                                      'Read the first sync word from the PIXY
@@ -248,7 +249,7 @@ Public Class PIXYData
 
 
 
-    'Sub for everytime the Center Callibrate Checkbox is selected. Deselects the other checkboxes and enables the Callibration button to be saved.
+    'Sub for every time the Center Calibrate Checkbox is selected. Deselects the other checkboxes and enables the Calibration button to be saved.
     Private Sub CCheckBox_Click(sender As Object, e As EventArgs) Handles CCheckBox.Click
 
         TRCheckBox.Checked = False
@@ -258,16 +259,16 @@ Public Class PIXYData
         DefaultsCheckBox.Checked = False
 
         If CCheckBox.Checked Then
-            CallibrateButton.Visible = True
+            CalibrateButton.Visible = True
         Else
-            CallibrateButton.Visible = False
+            CalibrateButton.Visible = False
         End If
 
     End Sub
 
 
 
-    'Sub for everytime the Top Right Callibrate Checkbox is selected. Deselects the other checkboxes and enables the Callibration button to be saved.
+    'Sub for every time the Top Right Calibrate Checkbox is selected. Deselects the other checkboxes and enables the Calibration button to be saved.
     Private Sub TRCheckBox_Click(sender As Object, e As EventArgs) Handles TRCheckBox.Click
 
         CCheckBox.Checked = False
@@ -277,16 +278,17 @@ Public Class PIXYData
         DefaultsCheckBox.Checked = False
 
         If TRCheckBox.Checked Then
-            CallibrateButton.Visible = True
+            CalibrateButton.Visible = True
         Else
-            CallibrateButton.Visible = False
+            CalibrateButton.Visible = False
         End If
 
     End Sub
 
 
 
-    'Sub for everytime the Top Left Callibrate Checkbox is selected. Deselects the other checkboxes and enables the Callibration button to be saved.
+
+    'Sub for every time the Top Left Calibrate Checkbox is selected. Deselects the other checkboxes and enables the Calibration button to be saved.
     Private Sub TLCheckBox_Click(sender As Object, e As EventArgs) Handles TLCheckBox.Click
 
         CCheckBox.Checked = False
@@ -296,16 +298,17 @@ Public Class PIXYData
         DefaultsCheckBox.Checked = False
 
         If TLCheckBox.Checked Then
-            CallibrateButton.Visible = True
+            CalibrateButton.Visible = True
         Else
-            CallibrateButton.Visible = False
+            CalibrateButton.Visible = False
         End If
 
     End Sub
 
 
 
-    'Sub for everytime the Bottom Right Callibrate Checkbox is selected. Deselects the other checkboxes and enables the Callibration button to be saved.
+
+    'Sub for every time the Bottom Right Calibrate Checkbox is selected. Deselects the other checkboxes and enables the Calibration button to be saved.
     Private Sub BRCheckBox_Click(sender As Object, e As EventArgs) Handles BRCheckBox.Click
 
         CCheckBox.Checked = False
@@ -315,16 +318,17 @@ Public Class PIXYData
         DefaultsCheckBox.Checked = False
 
         If BRCheckBox.Checked Then
-            CallibrateButton.Visible = True
+            CalibrateButton.Visible = True
         Else
-            CallibrateButton.Visible = False
+            CalibrateButton.Visible = False
         End If
 
     End Sub
 
 
 
-    'Sub for everytime the Bottom Left Callibrate Checkbox is selected. Deselects the other checkboxes and enables the Callibration button to be saved.
+
+    'Sub for every time the Bottom Left Calibrate Checkbox is selected. Deselects the other checkboxes and enables the Calibration button to be saved.
     Private Sub BLCheckBox_Click(sender As Object, e As EventArgs) Handles BLCheckBox.Click
 
         CCheckBox.Checked = False
@@ -334,18 +338,18 @@ Public Class PIXYData
         DefaultsCheckBox.Checked = False
 
         If BLCheckBox.Checked Then
-            CallibrateButton.Visible = True
+            CalibrateButton.Visible = True
         Else
-            CallibrateButton.Visible = False
+            CalibrateButton.Visible = False
         End If
 
     End Sub
 
 
 
-    'Sub for everytime the Default Callibrate Checkbox is selected. Deselects the other checkboxes and enables the Callibration button to be saved.
-    'The default values can be seen in the load, for the SPRING 2022 these are for the current callibration so that it does not need to be callibrated
-    'everytime the program starts.
+    'Sub for every time the Default Calibrate Checkbox is selected. Deselects the other checkboxes and enables the Calibration button to be saved.
+    'The default values can be seen in the load, for the SPRING 2022 these are for the current calibration so that it does not need to be calibrated
+    'every time the program starts.
     Private Sub DefaultsCheckBox_Click(sender As Object, e As EventArgs) Handles DefaultsCheckBox.Click
 
         CCheckBox.Checked = False
@@ -355,38 +359,38 @@ Public Class PIXYData
         BLCheckBox.Checked = False
 
         If DefaultsCheckBox.Checked Then
-            CallibrateButton.Visible = True
+            CalibrateButton.Visible = True
         Else
-            CallibrateButton.Visible = False
+            CalibrateButton.Visible = False
         End If
 
     End Sub
 
 
 
-    'Sub that will Callibrate the dimensions of the Table.
-    Private Sub CallibrateButton_Click(sender As Object, e As EventArgs) Handles CallibrateButton.Click, CallibrateToolStripMenuItem.Click
+    'Sub that will Calibrate the dimensions of the Table.
+    Private Sub CalibrateButton_Click(sender As Object, e As EventArgs) Handles CalibrateButton.Click, CalibrateToolStripMenuItem.Click
 
         Dim xPointInteger As Integer                                                                'Dimension for the x Point to be saved 
         Dim yPointInteger As Integer                                                                'Dimension for the y Point to be saved
 
-        If DefaultsCheckBox.Checked Then                                                            'Functions for when the Default callibration is made
+        If DefaultsCheckBox.Checked Then                                                            'Functions for when the Default calibration is made
 
             TRCheckBox.Visible = True                                                               'Enables Visibility on all the checkboxes 
             TLCheckBox.Visible = True                                                               '--/
             BRCheckBox.Visible = True                                                               '-/ 
             BLCheckBox.Visible = True                                                               '/
 
-            callibrations(0) = 153                                                                  'Default coordinates so that it doesn't have to callibrated at every bootup
-            callibrations(1) = 145                                                                  '--------/
-            callibrations(2) = 70                                                                   '-------/
-            callibrations(3) = 110                                                                  '------/
-            callibrations(4) = 237                                                                  '-----/
-            callibrations(5) = 110                                                                  '----/
-            callibrations(6) = 70                                                                   '---/
-            callibrations(7) = 180                                                                  '--/
-            callibrations(8) = 233                                                                  '-/
-            callibrations(9) = 180                                                                  '/
+            calibrationsave(0) = 153                                                                  'Default coordinates so that it doesn't have to calibrated at every bootup
+            calibrationsave(1) = 145                                                                  '--------/
+            calibrationsave(2) = 70                                                                   '-------/
+            calibrationsave(3) = 110                                                                  '------/
+            calibrationsave(4) = 237                                                                  '-----/
+            calibrationsave(5) = 110                                                                  '----/
+            calibrationsave(6) = 70                                                                   '---/
+            calibrationsave(7) = 180                                                                  '--/
+            calibrationsave(8) = 233                                                                  '-/
+            calibrationsave(9) = 180                                                                  '/
 
             xInchConversionSingle(0) = 0.2228915                                                    'Default inch conversions from default coordinates
             yInchConversionSingle(0) = 0.2142857                                                    '------/
@@ -397,116 +401,116 @@ Public Class PIXYData
             xInchConversionSingle(3) = 0.23125                                                      '-/
             yInchConversionSingle(3) = 0.2142857                                                    '/  
 
-            GraphicStateSub(6)                                                                      'Sub that allows for the callibration locations of the puck to be displayed
+            GraphicStateSub(6)                                                                      'Sub that allows for the calibration locations of the puck to be displayed
             TablePictureBoxSub(xLocationInteger(1), xLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
-                               callibrations, graphicsDisplayBoolean)                               '/
+                               calibrationsave, graphicsDisplayBoolean)                               '/
         End If
 
-        If CCheckBox.Checked Then                                                                   'Functions for when the Center callibration is made
+        If CCheckBox.Checked Then                                                                   'Functions for when the Center calibration is made
             xPointInteger = CInt(PuckXTextBox.Text)                                                 'Get the current location of the puck
             yPointInteger = CInt(PuckXTextBox.Text)                                                 '/
 
-            callibrations(0) = xPointInteger                                                        'Saves the location into the callibrations array
-            callibrations(1) = yPointInteger                                                        '/
+            calibrationsave(0) = xPointInteger                                                        'Saves the location into the calibrations array
+            calibrationsave(1) = yPointInteger                                                        '/
 
             TRCheckBox.Visible = True                                                               'Enables Visibility on all the checkboxes 
             TLCheckBox.Visible = True                                                               '--/
             BRCheckBox.Visible = True                                                               '-/
             BLCheckBox.Visible = True                                                               '/
 
-            GraphicStateSub(0)                                                                      'Sub that allows for the center callibration of the puck to be displayed
+            GraphicStateSub(0)                                                                      'Sub that allows for the center calibration of the puck to be displayed
             TablePictureBoxSub(xLocationInteger(1), xLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
-                               callibrations, graphicsDisplayBoolean)                               '/
+                               calibrationsave, graphicsDisplayBoolean)                               '/
         End If
 
-        If TLCheckBox.Checked Then                                                                  'Functions for when the Top Left callibration is made
+        If TLCheckBox.Checked Then                                                                  'Functions for when the Top Left calibration is made
             xPointInteger = CInt(PuckXTextBox.Text)                                                 'Get the current location of the puck
             yPointInteger = CInt(PuckYTextBox.Text)                                                 '/
 
-            callibrations(2) = xPointInteger                                                        'Saves the location into the callibrations array
-            callibrations(3) = yPointInteger                                                        '/
+            calibrationsave(2) = xPointInteger                                                        'Saves the location into the calibrations array
+            calibrationsave(3) = yPointInteger                                                        '/
 
-            xInchConversionSingle(0) = callibrations(0) - callibrations(2)                          'Difference from top left x location from center
+            xInchConversionSingle(0) = calibrationsave(0) - calibrationsave(2)                          'Difference from top left x location from center
             xInchConversionSingle(0) = xInchConversionSingle(0) / (CSng(WidthTextBox.Text) / 2)     'points of PIXY per inch
             xInchConversionSingle(0) = 1 / xInchConversionSingle(0)                                 'inch per points of PIXY
 
-            yInchConversionSingle(0) = callibrations(1) - callibrations(3)                          'Difference from top left y location from center
+            yInchConversionSingle(0) = calibrationsave(1) - calibrationsave(3)                          'Difference from top left y location from center
             yInchConversionSingle(0) = yInchConversionSingle(0) / (CSng(HeightTextBox.Text) / 2)    'points of PIXY per inch
             yInchConversionSingle(0) = 1 / yInchConversionSingle(0)                                 'inch per points of PIXY
 
-            GraphicStateSub(1)                                                                      'Sub that allows for the top left callibration of the puck to be displayed
+            GraphicStateSub(1)                                                                      'Sub that allows for the top left calibration of the puck to be displayed
             TablePictureBoxSub(xLocationInteger(1), xLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
-                               callibrations, graphicsDisplayBoolean)                               '/
+                               calibrationsave, graphicsDisplayBoolean)                               '/
         End If
 
-        If TRCheckBox.Checked Then                                                                  'Functions for when the Top Right callibration is made
+        If TRCheckBox.Checked Then                                                                  'Functions for when the Top Right calibration is made
             xPointInteger = CInt(PuckXTextBox.Text)                                                 'Get the current location of the puck
             yPointInteger = CInt(PuckYTextBox.Text)                                                 '/
 
-            callibrations(4) = xPointInteger                                                        'Saves the location into the callibrations array
-            callibrations(5) = yPointInteger                                                        '/
+            calibrationsave(4) = xPointInteger                                                        'Saves the location into the calibrations array
+            calibrationsave(5) = yPointInteger                                                        '/
 
-            xInchConversionSingle(1) = callibrations(4) - callibrations(0)                          'Difference from top right x location from center
+            xInchConversionSingle(1) = calibrationsave(4) - calibrationsave(0)                          'Difference from top right x location from center
             xInchConversionSingle(1) = xInchConversionSingle(1) / (CSng(WidthTextBox.Text) / 2)     'points of PIXY per inch
             xInchConversionSingle(1) = 1 / xInchConversionSingle(1)                                 'inch per points of PIXY
 
-            yInchConversionSingle(1) = callibrations(1) - callibrations(5)                          'Difference from top right y location from center
+            yInchConversionSingle(1) = calibrationsave(1) - calibrationsave(5)                          'Difference from top right y location from center
             yInchConversionSingle(1) = yInchConversionSingle(1) / (CSng(HeightTextBox.Text) / 2)    'points of PIXY per inch
             yInchConversionSingle(1) = 1 / yInchConversionSingle(1)                                 'inch per points of PIXY
 
-            GraphicStateSub(2)                                                                      'Sub that allows for the top right callibration of the puck to be displayed
+            GraphicStateSub(2)                                                                      'Sub that allows for the top right calibration of the puck to be displayed
             TablePictureBoxSub(xLocationInteger(1), xLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
-                               callibrations, graphicsDisplayBoolean)                               '/
+                               calibrationsave, graphicsDisplayBoolean)                               '/
         End If
 
-        If BLCheckBox.Checked Then                                                                  'Functions for when the Bottom Left callibration is made
+        If BLCheckBox.Checked Then                                                                  'Functions for when the Bottom Left calibration is made
             xPointInteger = CInt(PuckXTextBox.Text)                                                 'Get the current location of the puck
             yPointInteger = CInt(PuckYTextBox.Text)                                                 '/
 
-            callibrations(6) = xPointInteger                                                        'Saves the location into the callibrations array
-            callibrations(7) = yPointInteger                                                        '/
+            calibrationsave(6) = xPointInteger                                                        'Saves the location into the calibrations array
+            calibrationsave(7) = yPointInteger                                                        '/
 
-            xInchConversionSingle(2) = callibrations(0) - callibrations(6)                          'Difference from Bottom left x location from center
+            xInchConversionSingle(2) = calibrationsave(0) - calibrationsave(6)                          'Difference from Bottom left x location from center
             xInchConversionSingle(2) = xInchConversionSingle(2) / (CSng(WidthTextBox.Text) / 2)     'points of PIXY per inch
             xInchConversionSingle(2) = 1 / xInchConversionSingle(2)                                 'inch per points of PIXY
 
-            yInchConversionSingle(2) = callibrations(7) - callibrations(1)                          'Difference from Bottom left y location from center
+            yInchConversionSingle(2) = calibrationsave(7) - calibrationsave(1)                          'Difference from Bottom left y location from center
             yInchConversionSingle(2) = yInchConversionSingle(2) / (CSng(HeightTextBox.Text) / 2)    'points of PIXY per inch
             yInchConversionSingle(2) = 1 / yInchConversionSingle(2)                                 'inch per points of PIXY
 
-            GraphicStateSub(3)                                                                      'Sub that allows for the bottom left callibration of the puck to be displayed
+            GraphicStateSub(3)                                                                      'Sub that allows for the bottom left calibration of the puck to be displayed
             TablePictureBoxSub(xLocationInteger(1), xLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
-                               callibrations, graphicsDisplayBoolean)                               '/
+                               calibrationsave, graphicsDisplayBoolean)                               '/
         End If
 
-        If BRCheckBox.Checked Then                                                                  'Functions for when the Bottom Right callibration is made
+        If BRCheckBox.Checked Then                                                                  'Functions for when the Bottom Right calibration is made
             xPointInteger = CInt(PuckXTextBox.Text)                                                 'Get the current location of the puck
             yPointInteger = CInt(PuckYTextBox.Text)                                                 '/
 
-            callibrations(8) = xPointInteger                                                        'Saves the location into the callibrations array
-            callibrations(9) = yPointInteger                                                        '/
+            calibrationsave(8) = xPointInteger                                                        'Saves the location into the calibrations array
+            calibrationsave(9) = yPointInteger                                                        '/
 
-            xInchConversionSingle(3) = callibrations(8) - callibrations(0)                          'Difference from Bottom Right x location from center
+            xInchConversionSingle(3) = calibrationsave(8) - calibrationsave(0)                          'Difference from Bottom Right x location from center
             xInchConversionSingle(3) = xInchConversionSingle(3) / (CSng(WidthTextBox.Text) / 2)     'points of PIXY per inch
             xInchConversionSingle(3) = 1 / xInchConversionSingle(3)                                 'inch per points of PIXY
 
-            yInchConversionSingle(3) = callibrations(9) - callibrations(1)                          'Difference from Bottom Right y location from center
+            yInchConversionSingle(3) = calibrationsave(9) - calibrationsave(1)                          'Difference from Bottom Right y location from center
             yInchConversionSingle(3) = yInchConversionSingle(3) / (CSng(HeightTextBox.Text) / 2)    'points of PIXY per inch
             yInchConversionSingle(3) = 1 / yInchConversionSingle(3)                                 'inch per points of PIXY
 
-            GraphicStateSub(4)                                                                      'Sub that allows for the bottom right callibration of the puck to be displayed
+            GraphicStateSub(4)                                                                      'Sub that allows for the bottom right calibration of the puck to be displayed
             TablePictureBoxSub(xLocationInteger(1), xLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
-                               callibrations, graphicsDisplayBoolean)                               '/
+                               calibrationsave, graphicsDisplayBoolean)                               '/
         End If
 
-        DefaultsCheckBox.Checked = False                                                            'Disables check after callibration is set
+        DefaultsCheckBox.Checked = False                                                            'Disables check after calibration is set
         CCheckBox.Checked = False                                                                   '----/
         TLCheckBox.Checked = False                                                                  '---/
         TRCheckBox.Checked = False                                                                  '--/
         BLCheckBox.Checked = False                                                                  '-/
         BRCheckBox.Checked = False                                                                  '/
 
-        TablePictureBox.Refresh()                                                                   'Refresh the Picture box after callibration puck display finished
+        TablePictureBox.Refresh()                                                                   'Refresh the Picture box after calibration puck display finished
 
     End Sub
 
@@ -515,11 +519,11 @@ Public Class PIXYData
     'Save the Dimensions of the PIXY area if it is not at default location.
     'To test to see if an area is usable, it is easy to find by the led on the PIXY 
     'sensor. If it is flashing/on then that means the puck can be seen from that spot.
-    'If it is not that means the PIXY can not read the location of the puck.
+    'If it is not, that means the PIXY can not read the location of the puck.
     'Move the puck around and mark locations to know what these dimensions will be.
     Private Sub DimSaveButton_Click(sender As Object, e As EventArgs) Handles DimSaveButton.Click, SaveAreaToolStripMenuItem.Click
 
-        If IsNumeric(WidthTextBox.Text) And IsNumeric(HeightTextBox.Text) Then                      'Test if the Dimenstion save text boxes are VAILD, if not set to default
+        If IsNumeric(WidthTextBox.Text) And IsNumeric(HeightTextBox.Text) Then                      'Test if the Dimension save text boxes are VALID, if not set to default
             If WidthTextBox.Text = "0" Or HeightTextBox.Text = "0" Then                             '-----/
                 WidthTextBox.Text = "32"                                                            '----/
                 HeightTextBox.Text = "15"                                                           '---/
@@ -554,7 +558,7 @@ Public Class PIXYData
 
 
 
-    'Sub to manually indicate that the striker at home and is ready. Goes to the current location of the puck.
+    'Sub to manually indicate that the striker is at home and is ready. Goes to the current location of the puck.
     Private Sub ReadyCheckBox_Click(sender As Object, e As EventArgs) Handles ReadyCheckBox.Click
 
         If ReadyCheckBox.Checked = True Then                                                        'If the Ready checked, allows for the PIC send to be sent
@@ -577,9 +581,9 @@ Public Class PIXYData
             ReadyCheckBox.Visible = False                                                           'troubleshooting mode. If not data is sent automatically to 
             ManualLocButton.Visible = False                                                         'the PIC when it is ready and is not save when troubleshooting
             GoButton.Visible = False                                                                '---------/
-            CautionLabel.Text = "CAUTION" & vbNewLine & "TROUBLESHOOTING"                           'Unsave state
+            CautionLabel.Text = "CAUTION" & vbNewLine & "TROUBLESHOOTING"                           'Unsafe state
             CautionLabel.ForeColor = Color.Red                                                      '-------/
-        Else                                                                                        'Save state
+        Else                                                                                        'Safe state
             ReadyCheckBox.Checked = False                                                           '-----/
             ReadyCheckBox.Visible = True                                                            '----/
             ManualLocButton.Visible = True                                                          '---/
@@ -701,7 +705,7 @@ Public Class PIXYData
         If IsNumeric(X0TextBox.Text) And IsNumeric(Y0TextBox.Text) Then
             GraphicStateSub(5)                                                                      'Sub that indicates that the current location of the puck is to be displayed
             TablePictureBoxSub(xLocationInteger(1), yLocationInteger(1),                            'Sub that graphs the puck based on the Graphic State Sub
-                                callibrations, graphicsDisplayBoolean)                              '/
+                                calibrationsave, graphicsDisplayBoolean)                              '/
         End If
 
     End Sub
@@ -749,18 +753,18 @@ Public Class PIXYData
 
     'Sub to calculate the amount of steps in the x & y motors to move them to the location of the puck.
 
-    'This is the instaneous time of the puck with a velocity of zero. If the puck is moving the intersectionPointSub()
-    'will have to be made to know were to move the striker.
+    'This is the instantaneous time of the puck with a velocity of zero. If the puck is moving the intersectionPointSub()
+    'will have to be made to know where to move the striker.
 
     'The sent back data will have a MSB of 1/0 to indicate if the X motor needs to move right/left. The 
     'LSB bits will be the value of steps needed. 
 
     'The home location of the striker will be in the middle range of where the data of the Puck can be read. This will be at the 
     '(153,180) quardanents read from the PIXY. Therefore the maximum distance left or right is 18.5in and the maximum steps are
-    '4.625k. If the calculated steps is greater than this 4.625 then there is a mistake. 
+    '4.625k. If the calculated steps are greater than this 4.625 then there is a mistake. 
 
-    'In the Y direction the maximum distance up is 15in and the maximum steps are 3.75k. If the calculated steps is greater than this
-    '3.75k then were is a mistake.
+    'In the Y direction the maximum distance up is 15in and the maximum steps are 3.75k. If the calculated steps are greater than this
+    '3.75k then there is a mistake.
     Sub PuckPointSub()
 
         Dim strikerVelocitySingle As Single                                                         'Dimension of the set velocity of the motors/striker
@@ -800,8 +804,8 @@ Public Class PIXYData
         End If
 
 
-        puckDeltaXInteger = callibrations(0) - xLocationInteger(1)                                  'Get the displacement from center point
-        puckDeltaYInteger = callibrations(9) - yLocationInteger(1)                                  '/
+        puckDeltaXInteger = calibrationsave(0) - xLocationInteger(1)                                  'Get the displacement from center point
+        puckDeltaYInteger = calibrationsave(9) - yLocationInteger(1)                                  '/
 
         If puckDeltaXInteger < 0 Then                                                               'Sets if the x displacement is right or left from home
             xMotorDirectionBoolean = True                                                           '--/
@@ -888,21 +892,21 @@ Public Class PIXYData
 
         Dim strikerVelocitySingle As Single                                                         'Dimension of the striker velocity
         Dim puckDeltaXInteger As Integer                                                            'Dimension of the displacement x of the puck
-        Dim puckDeltaYInteger As Integer                                                            'Dimension of the displacemetn y of the puck
+        Dim puckDeltaYInteger As Integer                                                            'Dimension of the displacemet y of the puck
         Dim puckVelocityDouble As Double                                                            'Dimension of the puck velocity 
         Dim puckVelocityBoolean As Boolean = True                                                   'Dimension of the puck is moving (true)
         Dim aPointDouble As Double                                                                  'Dimension of the a value of quadratic
         Dim bPointDouble As Double                                                                  'Dimension of the b value of quadratic
         Dim cPointDouble As Double                                                                  'Dimension of the c value of quadratic
-        Dim distanceDouble As Double                                                                'Dimenison of the linear distance from puck to striker
-        Dim timeDouble As Double                                                                    'Dimenison of the time of intercept
+        Dim distanceDouble As Double                                                                'Dimension of the linear distance from puck to striker
+        Dim timeDouble As Double                                                                    'Dimension of the time of intercept
         Dim intersectionYInteger As Integer                                                         'Dimension of the x value of intersection
         Dim intersectionXInteger As Integer                                                         'Dimension of the y value of IN
 
 
         If Not xLocationInteger(1) = 0 Then                                                         'Test in location data is good fro velocity
-            puckDeltaXInteger = callibrations(0) - xLocationInteger(1)                              'Get the displacement from center point
-            puckDeltaYInteger = callibrations(9) - yLocationInteger(1)                              '/
+            puckDeltaXInteger = calibrationsave(0) - xLocationInteger(1)                              'Get the displacement from center point
+            puckDeltaYInteger = calibrationsave(9) - yLocationInteger(1)                              '/
 
             aPointDouble = Abs(puckDeltaXInteger) ^ (2)                                             'Get the linear distance to the puck from striker at home
             bPointDouble = Abs(puckDeltaYInteger) ^ (2)                                             '--/
@@ -940,7 +944,7 @@ Public Class PIXYData
 
     'Function to get the two values for time of the IntersectionPointSub. 
     'If both are negative then the puck is not able to be reached by the stiker. This is an error.
-    'If there is negative time that Is incorrect. The other value of t is sent back.
+    'If there is a negative time that Is incorrect. The other value of t is sent back.
     'If both are positive then the shortest time is sent back.
     Function QuadraticFunction(a As Double, b As Double, c As Double) As Double
 
@@ -955,7 +959,7 @@ Public Class PIXYData
         time2Double = time2Double / (2 * a)                                                         '-
 
         If time1Double > 0 Or time2Double > 0 Then
-            If time1Double < time2Double Then                                                       'Determines witch of the two times will be sent back
+            If time1Double < time2Double Then                                                       'Determines which of the two times will be sent back
                 Return time1Double                                                                  '----/
             Else                                                                                    '---/
                 Return time2Double                                                                  '--/
@@ -968,7 +972,7 @@ Public Class PIXYData
 
 
 
-    'Sub to know which Graphic state is desired. There are 6 possiblities, all the callibration locations
+    'Sub to know which Graphic state is desired. There are 6 possibilities, all the calibration locations
     'and the current puck location
     Sub GraphicStateSub(state As Integer)
 
@@ -1019,7 +1023,7 @@ Public Class PIXYData
 
 
     'Sub for the Graphic on the Table Picture Box so that the location of the PUCK can be seen
-    Sub TablePictureBoxSub(xLocationInteger As Integer, yLocationInteger As Integer, ByVal callibration As Array, ByVal stateBoolean As Array)
+    Sub TablePictureBoxSub(xLocationInteger As Integer, yLocationInteger As Integer, ByVal calibration As Array, ByVal stateBoolean As Array)
 
         Dim yScaleSingle As Single                                                                  'Dimensions of the scaling of the PIXY points to the Picture box
         Dim xScaleSingle As Single                                                                  '/
@@ -1033,10 +1037,10 @@ Public Class PIXYData
         Dim yMidInteger As Integer                                                                  '/
         Dim puckBrush As New SolidBrush(Color.GreenYellow)                                          'Dimensions for the Brushes used to make the green puck and have it erased
         Dim refreshBrush As New SolidBrush(Color.White)                                             '/
-        Dim callibration2() As Integer                                                              'Copy of the Inserted callibration array
+        Dim calibration2() As Integer                                                              'Copy of the Inserted calibration array
         Dim graphicStateBoolean() As Boolean                                                        'Copy of the Inserted state of what puck graphic is to be drawn
-        Dim callibrationsx(4) As Integer                                                            'Dimension to get the MAX and MIN of the x callibration values
-        Dim callibrationsy(4) As Integer                                                            'Dimension to get tha MAX and MIN of the y callibration values
+        Dim calibrationsx(4) As Integer                                                            'Dimension to get the MAX and MIN of the x calibration values
+        Dim calibrationsy(4) As Integer                                                            'Dimension to get the MAX and MIN of the y calibration values
         Static minInteger As Integer                                                                'Dimension of the MAX and MIN found in the MinMaxSub
         Static maxInteger As Integer                                                                '/
 
@@ -1053,7 +1057,7 @@ Public Class PIXYData
         graphicStateBoolean = CType(stateBoolean, Boolean())                                        'Reset the copy of state from the array for testing
 
 
-        'Graph the Center Callibration
+        'Graph the Center Calibration
         If graphicStateBoolean(0) Then
             TablePictureBox.CreateGraphics.FillEllipse(puckBrush, xMidInteger, yMidInteger, 100, 100)
             Sleep(1000)
@@ -1061,7 +1065,7 @@ Public Class PIXYData
         End If
 
 
-        'Graph the Top Left Callibration
+        'Graph the Top Left Calibration
         If graphicStateBoolean(1) Then
             TablePictureBox.CreateGraphics.FillEllipse(puckBrush, leftInteger, topInteger, 100, 100)
             Sleep(1000)
@@ -1069,7 +1073,7 @@ Public Class PIXYData
         End If
 
 
-        'Graph the Top Right Callibration
+        'Graph the Top Right Calibration
         If graphicStateBoolean(2) Then
             TablePictureBox.CreateGraphics.FillEllipse(puckBrush, rightInteger, topInteger, 100, 100)
             Sleep(1000)
@@ -1077,14 +1081,14 @@ Public Class PIXYData
         End If
 
 
-        'Graph the Bottom Left Callibration
+        'Graph the Bottom Left Calibration
         If graphicStateBoolean(3) Then
             TablePictureBox.CreateGraphics.FillEllipse(puckBrush, leftInteger, bottomInteger, 100, 100)
             Sleep(1000)
             TablePictureBox.CreateGraphics.FillEllipse(refreshBrush, leftInteger, bottomInteger, 100, 100)
         End If
 
-        'Graph the Bottom Right Callibration
+        'Graph the Bottom Right Calibration
         If graphicStateBoolean(4) Then
             TablePictureBox.CreateGraphics.FillEllipse(puckBrush, rightInteger, bottomInteger, 100, 100)
             Sleep(1000)
@@ -1094,30 +1098,30 @@ Public Class PIXYData
         'Graph the current location of the puck
         If graphicStateBoolean(5) Then
 
-            callibration2 = CType(callibration, Integer())                                          'Reset the copy of state from the array for testing
+            calibration2 = CType(calibration, Integer())                                          'Reset the copy of state from the array for testing
 
-            For i = 0 To 9 Step 2                                                                   'Get the X callibration values in one array
+            For i = 0 To 9 Step 2                                                                   'Get the X calibration values in one array
                 Dim valueInteger As Integer                                                         '-----/
                 Dim locationInteger As Integer                                                      '----/
 
-                valueInteger = callibration2(i)                                                     '---/
-                callibrationsx(locationInteger) = valueInteger                                      '--/
+                valueInteger = calibration2(i)                                                     '---/
+                calibrationsx(locationInteger) = valueInteger                                      '--/
                 locationInteger += 1                                                                '-/
             Next                                                                                    '/
-            For i = 1 To 9 Step 2                                                                   'Get the Y callibration values in one array
+            For i = 1 To 9 Step 2                                                                   'Get the Y calibration values in one array
                 Dim valueInteger As Integer                                                         '-----/
                 Dim locationInteger As Integer                                                      '----/
 
-                valueInteger = callibration2(i)                                                     '---/
-                callibrationsy(locationInteger) = valueInteger                                      '--/
+                valueInteger = calibration2(i)                                                     '---/
+                calibrationsy(locationInteger) = valueInteger                                      '--/
                 locationInteger += 1                                                                '-/
             Next                                                                                    '/
 
-            MinMaxSub(callibrationsx, minInteger, maxInteger)                                       'Get the max and min values of the x callibration
+            MinMaxSub(calibrationsx, minInteger, maxInteger)                                       'Get the max and min values of the x calibration
             xScaleSingle = CSng((rightInteger - leftInteger) \ (maxInteger - minInteger))           'Set the x scaling
             xInteger = CInt(rightInteger - ((xLocationInteger - minInteger) * xScaleSingle))        'Get the x current graph location based on scaling
 
-            MinMaxSub(callibrationsy, minInteger, maxInteger)                                       'Get the max and min values of the y callibration
+            MinMaxSub(calibrationsy, minInteger, maxInteger)                                       'Get the max and min values of the y calibration
             yScaleSingle = CSng((bottomInteger - topInteger) \ (maxInteger - minInteger))           'Set the y scaling
             yInteger = CInt(bottomInteger - ((yLocationInteger - minInteger) * yScaleSingle))       'Get the y current graph location based on scaling
 
@@ -1160,16 +1164,16 @@ Public Class PIXYData
     'Sub routine to display a Message box of the functionality of the program.
     Private Sub AboutToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AboutToolStripMenuItem.Click
         MsgBox("Welcome to Automated Air Hokey." + vbNewLine + vbNewLine +
-                "Communications with the PIXY Camera and Main Board PIC, allows for the program to receive data and to calcuate how to move motors." +
+                "Communications with the PIXY Camera and Main Board PIC, allows for the program to receive data and to calculate how to move motors." +
                 " This also displays the score and the location of the puck on the board." + vbNewLine + vbNewLine +
-                "Click one of the callibration checkboxes to manually set the center callibration or do all defaults." +
-                " If the center Is selected, then the rest of callibrations need to be done also." + vbNewLine + vbNewLine +
-                "Click the Callibration button to save the puck location as a center/corner(s)." + vbNewLine + vbNewLine +
+                "Click one of the calibration checkboxes to manually set the center calibration or do all defaults." +
+                " If the center Is selected, then the rest of calibrations need to be done also." + vbNewLine + vbNewLine +
+                "Click the Calibration button to save the puck location as a center/corner(s)." + vbNewLine + vbNewLine +
                 "Check the MANUAL GO checkbox to bypass the program to automatically send the data to the PIC to move Motors. " +
-                "This Is a SAFETY PRECAUTION for while troubleshooting. Troubleshooting Cautions are MANUAL READY, MANUAL LOCATION, Or MANUALLY GO. " + vbNewLine + vbNewLine +
+                "This Is a SAFETY PRECAUTION for troubleshooting. Troubleshooting Cautions are MANUAL READY, MANUAL LOCATION, Or MANUALLY GO. " + vbNewLine + vbNewLine +
                 "Check the MANUAL READY to bypass the receive data from the PIC to allow for the data to be sent out to the pic, CAUTION when Not at home." + vbNewLine + vbNewLine +
-                "Click the MANUAL LOCATION to send the Motors manually to the center postion of the PIXY Testing Area. " +
-                "NOTE: The motor needs to be at home location of table." + vbNewLine + vbNewLine +
+                "Click the MANUAL LOCATION to send the Motors manually to the center position of the PIXY Testing Area. " +
+                "NOTE: The motor needs to be at the home location of the table." + vbNewLine + vbNewLine +
                 "Click the MANUAL GO to send the data out, when the MANUAL Go checkbox is selected and/or if the MANUAL READY is selected. " +
                 "If the data received from PIC is ready, the MANUAL READY does not need to be pressed." + vbNewLine + vbNewLine +
                 "Click EXIT to leave program.")

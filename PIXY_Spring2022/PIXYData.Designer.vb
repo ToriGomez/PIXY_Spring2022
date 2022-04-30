@@ -36,14 +36,14 @@ Partial Class PIXYData
         Me.Goal2Label = New System.Windows.Forms.Label()
         Me.Goal1TextBox = New System.Windows.Forms.TextBox()
         Me.Goal2TextBox = New System.Windows.Forms.TextBox()
-        Me.CallibrateGroupBox = New System.Windows.Forms.GroupBox()
+        Me.CalibrateGroupBox = New System.Windows.Forms.GroupBox()
         Me.DefaultsCheckBox = New System.Windows.Forms.CheckBox()
         Me.BRCheckBox = New System.Windows.Forms.CheckBox()
         Me.TRCheckBox = New System.Windows.Forms.CheckBox()
         Me.BLCheckBox = New System.Windows.Forms.CheckBox()
         Me.TLCheckBox = New System.Windows.Forms.CheckBox()
         Me.CCheckBox = New System.Windows.Forms.CheckBox()
-        Me.CallibrateButton = New System.Windows.Forms.Button()
+        Me.CalibrateButton = New System.Windows.Forms.Button()
         Me.PuckYLabel = New System.Windows.Forms.Label()
         Me.PuckYTextBox = New System.Windows.Forms.TextBox()
         Me.PuckXLabel = New System.Windows.Forms.Label()
@@ -115,7 +115,7 @@ Partial Class PIXYData
         Me.MenuStrip = New System.Windows.Forms.MenuStrip()
         Me.FILEToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.TroubleshootToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.CallibrateToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.CalibrateToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.SaveAreaToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.SaveVelocityToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ManualLocationToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -126,7 +126,7 @@ Partial Class PIXYData
         Me.TabControl1.SuspendLayout()
         Me.TabPageDisplay.SuspendLayout()
         Me.ScoresGroupBox.SuspendLayout()
-        Me.CallibrateGroupBox.SuspendLayout()
+        Me.CalibrateGroupBox.SuspendLayout()
         CType(Me.TablePictureBox, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.TabPageTrouble.SuspendLayout()
         Me.DistGroupBox.SuspendLayout()
@@ -191,8 +191,8 @@ Partial Class PIXYData
         'TabPageDisplay
         '
         Me.TabPageDisplay.Controls.Add(Me.ScoresGroupBox)
-        Me.TabPageDisplay.Controls.Add(Me.CallibrateGroupBox)
-        Me.TabPageDisplay.Controls.Add(Me.CallibrateButton)
+        Me.TabPageDisplay.Controls.Add(Me.CalibrateGroupBox)
+        Me.TabPageDisplay.Controls.Add(Me.CalibrateButton)
         Me.TabPageDisplay.Controls.Add(Me.PuckYLabel)
         Me.TabPageDisplay.Controls.Add(Me.PuckYTextBox)
         Me.TabPageDisplay.Controls.Add(Me.PuckXLabel)
@@ -253,20 +253,20 @@ Partial Class PIXYData
         Me.Goal2TextBox.Size = New System.Drawing.Size(230, 38)
         Me.Goal2TextBox.TabIndex = 1
         '
-        'CallibrateGroupBox
+        'CalibrateGroupBox
         '
-        Me.CallibrateGroupBox.Controls.Add(Me.DefaultsCheckBox)
-        Me.CallibrateGroupBox.Controls.Add(Me.BRCheckBox)
-        Me.CallibrateGroupBox.Controls.Add(Me.TRCheckBox)
-        Me.CallibrateGroupBox.Controls.Add(Me.BLCheckBox)
-        Me.CallibrateGroupBox.Controls.Add(Me.TLCheckBox)
-        Me.CallibrateGroupBox.Controls.Add(Me.CCheckBox)
-        Me.CallibrateGroupBox.Location = New System.Drawing.Point(29, 309)
-        Me.CallibrateGroupBox.Name = "CallibrateGroupBox"
-        Me.CallibrateGroupBox.Size = New System.Drawing.Size(288, 303)
-        Me.CallibrateGroupBox.TabIndex = 11
-        Me.CallibrateGroupBox.TabStop = False
-        Me.CallibrateGroupBox.Text = "Callibration Points:"
+        Me.CalibrateGroupBox.Controls.Add(Me.DefaultsCheckBox)
+        Me.CalibrateGroupBox.Controls.Add(Me.BRCheckBox)
+        Me.CalibrateGroupBox.Controls.Add(Me.TRCheckBox)
+        Me.CalibrateGroupBox.Controls.Add(Me.BLCheckBox)
+        Me.CalibrateGroupBox.Controls.Add(Me.TLCheckBox)
+        Me.CalibrateGroupBox.Controls.Add(Me.CCheckBox)
+        Me.CalibrateGroupBox.Location = New System.Drawing.Point(29, 309)
+        Me.CalibrateGroupBox.Name = "CalibrateGroupBox"
+        Me.CalibrateGroupBox.Size = New System.Drawing.Size(288, 303)
+        Me.CalibrateGroupBox.TabIndex = 11
+        Me.CalibrateGroupBox.TabStop = False
+        Me.CalibrateGroupBox.Text = "Calibration Points:"
         '
         'DefaultsCheckBox
         '
@@ -328,14 +328,14 @@ Partial Class PIXYData
         Me.CCheckBox.Text = "Center"
         Me.CCheckBox.UseVisualStyleBackColor = True
         '
-        'CallibrateButton
+        'CalibrateButton
         '
-        Me.CallibrateButton.Location = New System.Drawing.Point(28, 226)
-        Me.CallibrateButton.Name = "CallibrateButton"
-        Me.CallibrateButton.Size = New System.Drawing.Size(228, 64)
-        Me.CallibrateButton.TabIndex = 5
-        Me.CallibrateButton.Text = "&CALLIBRATE"
-        Me.CallibrateButton.UseVisualStyleBackColor = True
+        Me.CalibrateButton.Location = New System.Drawing.Point(28, 226)
+        Me.CalibrateButton.Name = "CalibrateButton"
+        Me.CalibrateButton.Size = New System.Drawing.Size(228, 64)
+        Me.CalibrateButton.TabIndex = 5
+        Me.CalibrateButton.Text = "&CALIBRATE"
+        Me.CalibrateButton.UseVisualStyleBackColor = True
         '
         'PuckYLabel
         '
@@ -998,7 +998,7 @@ Partial Class PIXYData
         Me.MenuStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.FILEToolStripMenuItem, Me.HELPToolStripMenuItem})
         Me.MenuStrip.Location = New System.Drawing.Point(0, 0)
         Me.MenuStrip.Name = "MenuStrip"
-        Me.MenuStrip.Size = New System.Drawing.Size(2000, 60)
+        Me.MenuStrip.Size = New System.Drawing.Size(2000, 49)
         Me.MenuStrip.TabIndex = 4
         Me.MenuStrip.Text = "MenuStrip1"
         '
@@ -1006,57 +1006,57 @@ Partial Class PIXYData
         '
         Me.FILEToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.TroubleshootToolStripMenuItem, Me.ExitToolStripMenuItem})
         Me.FILEToolStripMenuItem.Name = "FILEToolStripMenuItem"
-        Me.FILEToolStripMenuItem.Size = New System.Drawing.Size(94, 50)
+        Me.FILEToolStripMenuItem.Size = New System.Drawing.Size(94, 45)
         Me.FILEToolStripMenuItem.Text = "FILE"
         '
         'TroubleshootToolStripMenuItem
         '
-        Me.TroubleshootToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CallibrateToolStripMenuItem, Me.SaveAreaToolStripMenuItem, Me.SaveVelocityToolStripMenuItem, Me.ManualLocationToolStripMenuItem, Me.ManualGoToolStripMenuItem})
+        Me.TroubleshootToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CalibrateToolStripMenuItem, Me.SaveAreaToolStripMenuItem, Me.SaveVelocityToolStripMenuItem, Me.ManualLocationToolStripMenuItem, Me.ManualGoToolStripMenuItem})
         Me.TroubleshootToolStripMenuItem.Name = "TroubleshootToolStripMenuItem"
-        Me.TroubleshootToolStripMenuItem.Size = New System.Drawing.Size(362, 54)
+        Me.TroubleshootToolStripMenuItem.Size = New System.Drawing.Size(448, 54)
         Me.TroubleshootToolStripMenuItem.Text = "&TroubleShoot"
         '
-        'CallibrateToolStripMenuItem
+        'CalibrateToolStripMenuItem
         '
-        Me.CallibrateToolStripMenuItem.Name = "CallibrateToolStripMenuItem"
-        Me.CallibrateToolStripMenuItem.Size = New System.Drawing.Size(403, 54)
-        Me.CallibrateToolStripMenuItem.Text = "&Callibrate"
+        Me.CalibrateToolStripMenuItem.Name = "CalibrateToolStripMenuItem"
+        Me.CalibrateToolStripMenuItem.Size = New System.Drawing.Size(448, 54)
+        Me.CalibrateToolStripMenuItem.Text = "&Calibrate"
         '
         'SaveAreaToolStripMenuItem
         '
         Me.SaveAreaToolStripMenuItem.Name = "SaveAreaToolStripMenuItem"
-        Me.SaveAreaToolStripMenuItem.Size = New System.Drawing.Size(403, 54)
+        Me.SaveAreaToolStripMenuItem.Size = New System.Drawing.Size(448, 54)
         Me.SaveAreaToolStripMenuItem.Text = "Save &Area"
         '
         'SaveVelocityToolStripMenuItem
         '
         Me.SaveVelocityToolStripMenuItem.Name = "SaveVelocityToolStripMenuItem"
-        Me.SaveVelocityToolStripMenuItem.Size = New System.Drawing.Size(403, 54)
+        Me.SaveVelocityToolStripMenuItem.Size = New System.Drawing.Size(448, 54)
         Me.SaveVelocityToolStripMenuItem.Text = "Save &Velocity"
         '
         'ManualLocationToolStripMenuItem
         '
         Me.ManualLocationToolStripMenuItem.Name = "ManualLocationToolStripMenuItem"
-        Me.ManualLocationToolStripMenuItem.Size = New System.Drawing.Size(403, 54)
+        Me.ManualLocationToolStripMenuItem.Size = New System.Drawing.Size(448, 54)
         Me.ManualLocationToolStripMenuItem.Text = "Manual &Location"
         '
         'ManualGoToolStripMenuItem
         '
         Me.ManualGoToolStripMenuItem.Name = "ManualGoToolStripMenuItem"
-        Me.ManualGoToolStripMenuItem.Size = New System.Drawing.Size(403, 54)
+        Me.ManualGoToolStripMenuItem.Size = New System.Drawing.Size(448, 54)
         Me.ManualGoToolStripMenuItem.Text = "Manual &Go"
         '
         'ExitToolStripMenuItem
         '
         Me.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem"
-        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(362, 54)
+        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(448, 54)
         Me.ExitToolStripMenuItem.Text = "&Exit"
         '
         'HELPToolStripMenuItem
         '
         Me.HELPToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.AboutToolStripMenuItem})
         Me.HELPToolStripMenuItem.Name = "HELPToolStripMenuItem"
-        Me.HELPToolStripMenuItem.Size = New System.Drawing.Size(109, 50)
+        Me.HELPToolStripMenuItem.Size = New System.Drawing.Size(109, 48)
         Me.HELPToolStripMenuItem.Text = "HELP"
         '
         'AboutToolStripMenuItem
@@ -1090,8 +1090,8 @@ Partial Class PIXYData
         Me.TabPageDisplay.PerformLayout()
         Me.ScoresGroupBox.ResumeLayout(False)
         Me.ScoresGroupBox.PerformLayout()
-        Me.CallibrateGroupBox.ResumeLayout(False)
-        Me.CallibrateGroupBox.PerformLayout()
+        Me.CalibrateGroupBox.ResumeLayout(False)
+        Me.CalibrateGroupBox.PerformLayout()
         CType(Me.TablePictureBox, System.ComponentModel.ISupportInitialize).EndInit()
         Me.TabPageTrouble.ResumeLayout(False)
         Me.DistGroupBox.ResumeLayout(False)
@@ -1152,7 +1152,7 @@ Partial Class PIXYData
     Friend WithEvents Y0TextBox As TextBox
     Friend WithEvents X1TextBox As TextBox
     Friend WithEvents RawPIXYGroupBox As GroupBox
-    Friend WithEvents CallibrateButton As Button
+    Friend WithEvents CalibrateButton As Button
     Friend WithEvents PuckYLabel As Label
     Friend WithEvents PuckYTextBox As TextBox
     Friend WithEvents PuckXLabel As Label
@@ -1163,7 +1163,7 @@ Partial Class PIXYData
     Friend WithEvents BLCheckBox As CheckBox
     Friend WithEvents TLCheckBox As CheckBox
     Friend WithEvents CCheckBox As CheckBox
-    Friend WithEvents CallibrateGroupBox As GroupBox
+    Friend WithEvents CalibrateGroupBox As GroupBox
     Friend WithEvents HeightLabel As Label
     Friend WithEvents HeightTextBox As TextBox
     Friend WithEvents WLabel As Label
@@ -1207,7 +1207,7 @@ Partial Class PIXYData
     Friend WithEvents ReadyCheckBox As CheckBox
     Friend WithEvents ManualLocButton As Button
     Friend WithEvents TroubleshootToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents CallibrateToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents CalibrateToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ExitToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents AboutToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents SaveAreaToolStripMenuItem As ToolStripMenuItem
