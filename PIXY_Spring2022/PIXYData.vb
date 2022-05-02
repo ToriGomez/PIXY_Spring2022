@@ -5,7 +5,7 @@
 'Based on the serial data sent from the PIXY, this code will read and analyze
 'and tell the PIC16LF1788 on what to do in direction the puck will need to move.
 
-'Refer to link
+'Refer to link https://github.com/ToriGomez/PIXY_Spring2022/tree/pcmaster for original code
 
 Option Strict On
 Option Explicit On
