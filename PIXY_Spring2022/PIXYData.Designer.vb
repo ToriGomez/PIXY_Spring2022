@@ -43,7 +43,7 @@ Partial Class PIXYData
         Me.BLCheckBox = New System.Windows.Forms.CheckBox()
         Me.TLCheckBox = New System.Windows.Forms.CheckBox()
         Me.CCheckBox = New System.Windows.Forms.CheckBox()
-        Me.CallibrateButton = New System.Windows.Forms.Button()
+        Me.CalibrateButton = New System.Windows.Forms.Button()
         Me.PuckYLabel = New System.Windows.Forms.Label()
         Me.PuckYTextBox = New System.Windows.Forms.TextBox()
         Me.PuckXLabel = New System.Windows.Forms.Label()
@@ -115,7 +115,7 @@ Partial Class PIXYData
         Me.MenuStrip = New System.Windows.Forms.MenuStrip()
         Me.FILEToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.TroubleshootToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.CallibrateToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.CalibrateToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.SaveAreaToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.SaveVelocityToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ManualLocationToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -196,7 +196,7 @@ Partial Class PIXYData
         '
         Me.TabPageDisplay.Controls.Add(Me.ScoresGroupBox)
         Me.TabPageDisplay.Controls.Add(Me.CallibrateGroupBox)
-        Me.TabPageDisplay.Controls.Add(Me.CallibrateButton)
+        Me.TabPageDisplay.Controls.Add(Me.CalibrateButton)
         Me.TabPageDisplay.Controls.Add(Me.PuckYLabel)
         Me.TabPageDisplay.Controls.Add(Me.PuckYTextBox)
         Me.TabPageDisplay.Controls.Add(Me.PuckXLabel)
@@ -347,15 +347,15 @@ Partial Class PIXYData
         Me.CCheckBox.Text = "Center"
         Me.CCheckBox.UseVisualStyleBackColor = True
         '
-        'CallibrateButton
+        'CalibrateButton
         '
-        Me.CallibrateButton.Location = New System.Drawing.Point(10, 95)
-        Me.CallibrateButton.Margin = New System.Windows.Forms.Padding(1)
-        Me.CallibrateButton.Name = "CallibrateButton"
-        Me.CallibrateButton.Size = New System.Drawing.Size(86, 27)
-        Me.CallibrateButton.TabIndex = 5
-        Me.CallibrateButton.Text = "&CALLIBRATE"
-        Me.CallibrateButton.UseVisualStyleBackColor = True
+        Me.CalibrateButton.Location = New System.Drawing.Point(10, 95)
+        Me.CalibrateButton.Margin = New System.Windows.Forms.Padding(1)
+        Me.CalibrateButton.Name = "CalibrateButton"
+        Me.CalibrateButton.Size = New System.Drawing.Size(86, 27)
+        Me.CalibrateButton.TabIndex = 5
+        Me.CalibrateButton.Text = "&CALIBRATE"
+        Me.CalibrateButton.UseVisualStyleBackColor = True
         '
         'PuckYLabel
         '
@@ -1106,45 +1106,45 @@ Partial Class PIXYData
         '
         'TroubleshootToolStripMenuItem
         '
-        Me.TroubleshootToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CallibrateToolStripMenuItem, Me.SaveAreaToolStripMenuItem, Me.SaveVelocityToolStripMenuItem, Me.ManualLocationToolStripMenuItem, Me.ManualGoToolStripMenuItem})
+        Me.TroubleshootToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CalibrateToolStripMenuItem, Me.SaveAreaToolStripMenuItem, Me.SaveVelocityToolStripMenuItem, Me.ManualLocationToolStripMenuItem, Me.ManualGoToolStripMenuItem})
         Me.TroubleshootToolStripMenuItem.Name = "TroubleshootToolStripMenuItem"
-        Me.TroubleshootToolStripMenuItem.Size = New System.Drawing.Size(144, 22)
+        Me.TroubleshootToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.TroubleshootToolStripMenuItem.Text = "&TroubleShoot"
         '
-        'CallibrateToolStripMenuItem
+        'CalibrateToolStripMenuItem
         '
-        Me.CallibrateToolStripMenuItem.Name = "CallibrateToolStripMenuItem"
-        Me.CallibrateToolStripMenuItem.Size = New System.Drawing.Size(163, 22)
-        Me.CallibrateToolStripMenuItem.Text = "&Callibrate"
+        Me.CalibrateToolStripMenuItem.Name = "CalibrateToolStripMenuItem"
+        Me.CalibrateToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.CalibrateToolStripMenuItem.Text = "&Calibrate"
         '
         'SaveAreaToolStripMenuItem
         '
         Me.SaveAreaToolStripMenuItem.Name = "SaveAreaToolStripMenuItem"
-        Me.SaveAreaToolStripMenuItem.Size = New System.Drawing.Size(163, 22)
+        Me.SaveAreaToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.SaveAreaToolStripMenuItem.Text = "Save &Area"
         '
         'SaveVelocityToolStripMenuItem
         '
         Me.SaveVelocityToolStripMenuItem.Name = "SaveVelocityToolStripMenuItem"
-        Me.SaveVelocityToolStripMenuItem.Size = New System.Drawing.Size(163, 22)
+        Me.SaveVelocityToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.SaveVelocityToolStripMenuItem.Text = "Save &Velocity"
         '
         'ManualLocationToolStripMenuItem
         '
         Me.ManualLocationToolStripMenuItem.Name = "ManualLocationToolStripMenuItem"
-        Me.ManualLocationToolStripMenuItem.Size = New System.Drawing.Size(163, 22)
+        Me.ManualLocationToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.ManualLocationToolStripMenuItem.Text = "Manual &Location"
         '
         'ManualGoToolStripMenuItem
         '
         Me.ManualGoToolStripMenuItem.Name = "ManualGoToolStripMenuItem"
-        Me.ManualGoToolStripMenuItem.Size = New System.Drawing.Size(163, 22)
+        Me.ManualGoToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.ManualGoToolStripMenuItem.Text = "Manual &Go"
         '
         'ExitToolStripMenuItem
         '
         Me.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem"
-        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(144, 22)
+        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
         Me.ExitToolStripMenuItem.Text = "&Exit"
         '
         'HELPToolStripMenuItem
@@ -1248,7 +1248,7 @@ Partial Class PIXYData
     Friend WithEvents Y0TextBox As TextBox
     Friend WithEvents X1TextBox As TextBox
     Friend WithEvents RawPIXYGroupBox As GroupBox
-    Friend WithEvents CallibrateButton As Button
+    Friend WithEvents CalibrateButton As Button
     Friend WithEvents PuckYLabel As Label
     Friend WithEvents PuckYTextBox As TextBox
     Friend WithEvents PuckXLabel As Label
@@ -1303,7 +1303,7 @@ Partial Class PIXYData
     Friend WithEvents ReadyCheckBox As CheckBox
     Friend WithEvents ManualLocButton As Button
     Friend WithEvents TroubleshootToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents CallibrateToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents CalibrateToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents ExitToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents AboutToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents SaveAreaToolStripMenuItem As ToolStripMenuItem
