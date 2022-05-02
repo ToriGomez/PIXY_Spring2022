@@ -1,5 +1,5 @@
 ﻿'Tori Gomez
-'3/30/21
+'4/29/21
 'Code for the PIXYCMUcam5 to get data to be sent to the PIC16LF1788.
 'The PIXY will detect the puck that is illuminated in green and the striker.
 'Based on the serial data sent from the PIXY, this code will read and analyze
